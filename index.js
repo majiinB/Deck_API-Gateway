@@ -4,8 +4,8 @@ import responseRoute from './routes/responseRoute.js';
 import { getIPAddress } from './functions/utils.js';
 
 // INSTANTIATE OBJECTS AND REQUIREMENTS
-const PORT = 8080;
-const IP = getIPAddress();
+const PORT = 3000;
+//const IP = getIPAddress();
 const app = express();
 
 // MIDDLEWARE
@@ -19,7 +19,7 @@ app.use('/message', messageRoute);
 app.use('/response', responseRoute);
 
 // FIRE UP THE API
-app.listen(PORT, IP, () => {
-    console.log(`Deck API is now listening to http://${IP}:${PORT}`);
+app.listen(PORT, () => {
+    console.log(`Deck API is now listening to http://localhost:${PORT}`);
 })
 
