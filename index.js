@@ -17,6 +17,10 @@ app.use(express.json());
 //END POINTS
 app.use('/message', messageRoute);
 app.use('/response', responseRoute);
+app.get('/hi', async (req,res) => {
+    console.log('someone said hi');
+    return res.status(200).send('Hello I\'m Online!');
+});
 
 // FIRE UP THE API
 app.listen(PORT, () => {
