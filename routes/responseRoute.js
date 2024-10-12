@@ -4,7 +4,7 @@ import { delay } from '../functions/utils.js'
 
 const router = express.Router();
 
-router.get('/:id', async (req, res) => {
+router.get('v1/openAI/:id', async (req, res) => {
     const { id } = req.params;
     const { thread_id, run_id } = req.query;
     const MAX_TRIES = 5;
@@ -20,7 +20,7 @@ router.get('/:id', async (req, res) => {
         tries++;
 
         // Add a delay before making the next retrieval
-        await delay(2000);
+        await delay(1500);
     }
 
     // Shield

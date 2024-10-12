@@ -1,5 +1,5 @@
 import express from 'express';
-import messageRoute from './routes/messageRoute.js';
+import messageRoute from './routes/promptRoute.js';
 import responseRoute from './routes/responseRoute.js';
 import { getIPAddress } from './functions/utils.js';
 
@@ -15,9 +15,9 @@ const app = express();
 app.use(express.json());
 
 //END POINTS
-app.use('/message', messageRoute);
+app.use('/prompt', messageRoute);
 app.use('/response', responseRoute);
-app.get('/hi', async (req,res) => {
+app.get('/hi', async (req, res) => {
     console.log('someone said hi');
     return res.status(200).send('Hello I\'m Online!');
 });

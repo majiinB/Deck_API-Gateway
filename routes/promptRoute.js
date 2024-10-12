@@ -9,7 +9,7 @@ const router = express.Router();
 // Initialize firebase app
 initializeApp(config);
 
-router.post('/:id', async (req, res) => {
+router.post('/v1/openAI/:id', async (req, res) => {
     const { id } = req.params;
     const { subject } = req.body;
     const { topic } = req.body;
