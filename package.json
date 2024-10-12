@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "Arthur Artugue",
   "license": "ISC",
@@ -15,8 +15,10 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "firebase": "^10.11.1",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.0",
     "openai": "^4.40.2",
-    "pdf.js-extract": "^0.2.1"
+    "pdf.js-extract": "^0.2.1",
+    "supertest": "^7.0.0"
   }
 }

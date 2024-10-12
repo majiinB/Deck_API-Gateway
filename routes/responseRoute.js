@@ -36,7 +36,7 @@ router.get('/v1/openAI/:id', async (req, res) => {
         try {
             // Retrieve messages from the thread
             const response = await openai.beta.threads.messages.list(thread_id);
-            console.log(response); // For debugging
+            //console.log(response); // For debugging
 
             // Array to store parsed JSON objects
             const parsedMessages = [];

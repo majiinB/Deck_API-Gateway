@@ -1,8 +1,9 @@
 import express from 'express';
 import openai, { assistant } from '../config/openaiConfig.js'
-import { createThread, extractPdfText, downloadPdf, deleteFile, isValidInteger, cleanString } from '../functions/utils.js'
+import { createThread, extractPdfText, downloadPdf, deleteFile, isValidInteger, extractGoogleAIJsonFromText } from '../functions/utils.js'
 import { initializeApp } from 'firebase/app';
 import config from '../config/firebaseConfig.js'
+import { model } from '../config/geminiConfig.js';
 
 const router = express.Router();
 
@@ -129,8 +130,23 @@ router.post('/v1/openAI/:id', async (req, res) => {
     }
 });
 
-router.post('/v2/gemini/:id', (req, res) => {
+router.post('/v2/gemini', async (req, res) => {
+    const prompt = 'I want you to act as a Professor providing students with questions and answers but strictly, answer in JSON format and no introductory sentences, write it like a code generator.' +
+        'the format is {questions:{question: 1+1, answer: 2}, {question:2+3, answer:5}}.' + 'give me 5 questions with answers. the subject is Pornography and the topic is top ten female performer and methodologies .' +
+        `Do not repeat questions. Also make the questions 1-2 sentences max and the answers 1 sentence max or the keypoint only`;
+    // + "Also if the message is any of the following: " +
+    // "1.the message is not about academics. " +
+    // "2.the given informations did not align or did not make sense. " +
+    // "3.message is to vague. " +
+    // "4.the message is vulgar. " +
+    // "5.the message involves getting personal information. " +
+    // "return an empty JSON"
 
+    const result = await model.generateContent(prompt);
+
+    const response = result.response.candidates[0].content.parts[0].text;
+    const sanitized = extractGoogleAIJsonFromText(response);
+    return res.status(200).json(sanitized);
 });
 
 export default router;

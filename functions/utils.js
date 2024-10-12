@@ -7,6 +7,28 @@ import { log } from 'console';
 import os from 'os';
 dotenv.config();
 
+// Function to extract and parse the JSON from the text
+export function extractGoogleAIJsonFromText(response) {
+    // Check if the response and response.text exist and are strings
+    if (!response || typeof response !== 'string') {
+        console.error('Invalid input: response.text is missing or not a string');
+        return {}; // Return null if input is invalid
+    }
+
+    // Remove the backticks and the 'json' keyword
+    const cleanedText = response
+        .replace(/^```json\s*/, '') // Remove leading ```json
+        .replace(/```$/, ''); // Remove trailing ```
+
+    try {
+        // Parse the cleaned text into a JSON object
+        return JSON.parse(cleanedText);
+    } catch (error) {
+        console.error('Failed to parse JSON:', error);
+        return {}; // Return null if parsing fails
+    }
+}
+
 export function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
