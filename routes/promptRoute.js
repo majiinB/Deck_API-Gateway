@@ -111,7 +111,7 @@ router.post('/v1/openAI/:id', async (req, res) => {
             instructions: "I want you to act as a Professor providing students with questions and answers but strictly, answer in JSON format and no introductory sentences, write it like a code generator." +
                 "the format is {questions:{question: 1+1, answer: 2}, {question:2+3, answer:5}}" +
                 "Also if the message is any of the following: " +
-                "1.if the message is not about academics. " +
+                "1.the message is not about academics. " +
                 "2.the given informations did not align or did not make sense. " +
                 "3.message is to vague. " +
                 "4.the message is vulgar. " +
@@ -127,6 +127,10 @@ router.post('/v1/openAI/:id', async (req, res) => {
     } catch (error) {
         return res.status(424).send('An error occured in message route prompt process');
     }
+});
+
+router.post('/v2/gemini/:id', (req, res) => {
+
 });
 
 export default router;

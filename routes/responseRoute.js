@@ -4,7 +4,7 @@ import { delay } from '../functions/utils.js'
 
 const router = express.Router();
 
-router.get('v1/openAI/:id', async (req, res) => {
+router.get('/v1/openAI/:id', async (req, res) => {
     const { id } = req.params;
     const { thread_id, run_id } = req.query;
     const MAX_TRIES = 5;
@@ -67,5 +67,7 @@ router.get('v1/openAI/:id', async (req, res) => {
         }
     }
 });
+
+//router.get('/v2/gemini/:id')
 
 export default router;
