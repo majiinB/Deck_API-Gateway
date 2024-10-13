@@ -1,6 +1,6 @@
 import express from 'express';
 import openai, { assistant } from '../config/openaiConfig.js'
-import { createThread, extractPdfText, downloadPdf, deleteFile, isValidInteger, extractGoogleAIJsonFromText } from '../functions/utils.js'
+import { createThread, extractPdfText, downloadPdf, deleteFile, isValidInteger, extractGoogleAIJsonFromText, constructGoogleAIPrompt, downloadFile, uploadToGemini, getMimeType, waitForFilesActive } from '../functions/utils.js'
 import { initializeApp } from 'firebase/app';
 import config from '../config/firebaseConfig.js'
 import { model } from '../config/geminiConfig.js';
@@ -89,12 +89,6 @@ router.post('/v1/openAI/:id', async (req, res) => {
 
     prompt += lastLinePrompt;
 
-    /* Ganto mukha nung prompt kung lahat ng info meron
-    *  prompt = `Instructions: give me ${numberOfQuestions} questions with answers. the subject is ${subject} and the topic is ${topic}.`
-    *  + ` Additional description: ${addDescription}. ` + `Source of information to use: ${pdfInfo} ` +
-    *  `Do not repeat questions. Also make the questions 1-2 sentences max and the answers 1 sentence max or the keypoint only`
-    */
-
     // Success
     try {
         // Create or retrieve thread
@@ -130,23 +124,70 @@ router.post('/v1/openAI/:id', async (req, res) => {
     }
 });
 
-router.post('/v2/gemini', async (req, res) => {
-    const prompt = 'I want you to act as a Professor providing students with questions and answers but strictly, answer in JSON format and no introductory sentences, write it like a code generator.' +
-        'the format is {questions:{question: 1+1, answer: 2}, {question:2+3, answer:5}}.' + 'give me 5 questions with answers. the subject is Pornography and the topic is top ten female performer and methodologies .' +
-        `Do not repeat questions. Also make the questions 1-2 sentences max and the answers 1 sentence max or the keypoint only`;
-    // + "Also if the message is any of the following: " +
-    // "1.the message is not about academics. " +
-    // "2.the given informations did not align or did not make sense. " +
-    // "3.message is to vague. " +
-    // "4.the message is vulgar. " +
-    // "5.the message involves getting personal information. " +
-    // "return an empty JSON"
+router.post('/v2/gemini/:id', async (req, res) => {
+    const { id } = req.params;
+    const { subject } = req.body;
+    const { topic } = req.body;
+    const { addDescription } = req.body;
+    const { fileName } = req.body;
+    const { fileExtension } = req.body;
+    const { numberOfQuestions } = req.body;
 
-    const result = await model.generateContent(prompt);
+    // Shield
+    if (!fileName) {
+        if (!subject || !topic) {
+            return res.status(418).send('If no pdf file is given a subject or topic is required');
+        }
+    }
 
-    const response = result.response.candidates[0].content.parts[0].text;
-    const sanitized = extractGoogleAIJsonFromText(response);
-    return res.status(200).json(sanitized);
+    if (!isValidInteger(numberOfQuestions)) {
+        return res.status(420).send('You have enetered an invalid input for the number of flashcards to be generated\nYour input should be of numerical value that ranges from 2-20');
+    }
+
+    if (fileName) {
+
+        if (!fileExtension) return res.status(418).send('File extension is required');
+
+        try {
+            const filePath = await downloadFile(fileName, fileExtension, id);
+            if (filePath == '') return res.status(418).send('There was an error in the server during the retrieval of file');
+            const fileType = getMimeType(fileExtension);
+            const files = [await uploadToGemini(filePath, fileType)];
+            await waitForFilesActive(files);
+
+            const prompt = constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions);
+
+            const result = await model.generateContent([
+                {
+                    fileData: {
+                        mimeType: files[0].mimeType,
+                        fileUri: files[0].uri
+                    }
+                },
+                { text: prompt }
+            ]);
+
+            const response = result.response.candidates[0].content.parts[0].text;
+            const sanitized = extractGoogleAIJsonFromText(response);
+            return res.status(200).json(sanitized);
+
+        } catch (error) {
+            res.status(418).send('There was an error in the server during the retrieval of file');
+        }
+    } else {
+        const prompt = constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions);
+
+        const result = await model.generateContent(prompt);
+
+        const response = result.response.candidates[0].content.parts[0].text;
+        const sanitized = extractGoogleAIJsonFromText(response);
+        return res.status(200).json(sanitized);
+    }
+
+
+
+
+
 });
 
 export default router;
