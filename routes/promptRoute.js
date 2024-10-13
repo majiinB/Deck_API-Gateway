@@ -1,9 +1,9 @@
 import express from 'express';
 import openai, { assistant } from '../config/openaiConfig.js'
-import { createThread, extractPdfText, downloadPdf, deleteFile, isValidInteger, extractGoogleAIJsonFromText, constructGoogleAIPrompt, downloadFile, uploadToGemini, getMimeType, waitForFilesActive } from '../functions/utils.js'
+import { createThread, extractPdfText, downloadPdf, deleteFile, isValidInteger } from '../functions/utils.js'
 import { initializeApp } from 'firebase/app';
 import config from '../config/firebaseConfig.js'
-import { model } from '../config/geminiConfig.js';
+import { sendPrompt, constructGoogleAIPrompt, downloadFile, uploadToGemini, getMimeType, waitForFilesActive } from '../functions/gemini.utils.js';
 
 const router = express.Router();
 
@@ -132,62 +132,44 @@ router.post('/v2/gemini/:id', async (req, res) => {
     const { fileName } = req.body;
     const { fileExtension } = req.body;
     const { numberOfQuestions } = req.body;
+    let response;
 
     // Shield
     if (!fileName) {
         if (!subject || !topic) {
-            return res.status(418).send('If no pdf file is given a subject or topic is required');
+            return res.status(400).send('If no pdf file is given a subject or topic is required');
         }
     }
 
     if (!isValidInteger(numberOfQuestions)) {
-        return res.status(420).send('You have enetered an invalid input for the number of flashcards to be generated\nYour input should be of numerical value that ranges from 2-20');
+        return res.status(422).send('You have enetered an invalid input for the number of flashcards to be generated\nYour input should be of numerical value that ranges from 2-20');
     }
+
+    const prompt = constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions);
 
     if (fileName) {
 
-        if (!fileExtension) return res.status(418).send('File extension is required');
+        if (!fileExtension) {
+            return res.status(422).send('File extension is required');
+        }
 
         try {
             const filePath = await downloadFile(fileName, fileExtension, id);
-            if (filePath == '') return res.status(418).send('There was an error in the server during the retrieval of file');
-            const fileType = getMimeType(fileExtension);
-            const files = [await uploadToGemini(filePath, fileType)];
-            await waitForFilesActive(files);
+            if (filePath == '') return res.status(500).send('There was an error in the server during the retrieval of file');
 
-            const prompt = constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions);
+            response = await sendPrompt(true, prompt, filePath, fileExtension);
 
-            const result = await model.generateContent([
-                {
-                    fileData: {
-                        mimeType: files[0].mimeType,
-                        fileUri: files[0].uri
-                    }
-                },
-                { text: prompt }
-            ]);
-
-            const response = result.response.candidates[0].content.parts[0].text;
-            const sanitized = extractGoogleAIJsonFromText(response);
-            return res.status(200).json(sanitized);
+            deleteFile(filePath);
+            return res.status(200).json(response);
 
         } catch (error) {
-            res.status(418).send('There was an error in the server during the retrieval of file');
+            console.log(error); // For Debug
+            res.status(500).send('There was an error in the server during the retrieval of file');
         }
     } else {
-        const prompt = constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions);
-
-        const result = await model.generateContent(prompt);
-
-        const response = result.response.candidates[0].content.parts[0].text;
-        const sanitized = extractGoogleAIJsonFromText(response);
-        return res.status(200).json(sanitized);
+        response = await sendPrompt(false, prompt);
+        return res.status(200).json(response);
     }
-
-
-
-
-
 });
 
 export default router;
