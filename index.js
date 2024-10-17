@@ -34,7 +34,6 @@ import responseRoute from './routes/responseRoute.js';
 
 // INSTANTIATE OBJECTS AND REQUIREMENTS
 const PORT = 3000;
-//const IP = getIPAddress();
 const app = express();
 
 /**

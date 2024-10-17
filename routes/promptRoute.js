@@ -1,9 +1,9 @@
 import express from 'express';
-import openai, { assistant } from '../config/openaiConfig.js'
-import { createThread, extractPdfText, downloadPdf, deleteFile, isValidInteger } from '../functions/utils.js'
+import openai, { assistant } from '../config/openaiConfig.js';
 import { initializeApp } from 'firebase/app';
+import { createThread, extractPdfText, downloadPdf, deleteFile, isValidInteger } from '../functions/utils.js';
+import { sendPrompt, constructGoogleAIPrompt, downloadFile } from '../functions/gemini.utils.js';
 import config from '../config/firebaseConfig.js'
-import { sendPrompt, constructGoogleAIPrompt, downloadFile, uploadToGemini, getMimeType, waitForFilesActive } from '../functions/gemini.utils.js';
 
 const router = express.Router();
 
@@ -140,16 +140,15 @@ router.post('/v2/gemini/:id', async (req, res) => {
             return res.status(400).send('If no pdf file is given a subject or topic is required');
         }
     }
-
     if (!isValidInteger(numberOfQuestions)) {
         return res.status(422).send('You have enetered an invalid input for the number of flashcards to be generated\nYour input should be of numerical value that ranges from 2-20');
     }
 
     const prompt = constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions);
 
-    if (fileName) {
+    if (fileName) { // Check for filename
 
-        if (!fileExtension) {
+        if (!fileExtension) { // Check for extension
             return res.status(422).send('File extension is required');
         }
 
@@ -161,7 +160,6 @@ router.post('/v2/gemini/:id', async (req, res) => {
 
             deleteFile(filePath);
             return res.status(200).json(response);
-
         } catch (error) {
             console.log(error); // For Debug
             res.status(500).send('There was an error in the server during the retrieval of file');
