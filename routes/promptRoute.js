@@ -136,6 +136,8 @@ router.post('/v2/gemini/:id', async (req, res) => {
 
     // Shield
     if (!fileName) {
+        console.log(fileName);
+        
         if (!subject || !topic) {
             return res.status(400).send('If no pdf file is given a subject or topic is required');
         }

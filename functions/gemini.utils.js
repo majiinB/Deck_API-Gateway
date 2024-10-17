@@ -1,6 +1,7 @@
 import { model } from '../config/geminiConfig.js';
 import { fileManager } from '../config/geminiConfig.js';
 import { Storage } from '@google-cloud/storage';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import mime from 'mime';
 import * as dotenv from 'dotenv';
 
@@ -48,11 +49,13 @@ export function getMimeType(extension) {
 }
 
 export async function uploadToGemini(path, mimeType) {
-    try{
-
-    }catch(err){
-        
-    };
+    const uploadResult = await fileManager.uploadFile(path, {
+        mimeType,
+        displayName: path,
+    });
+    const file = uploadResult.file;
+    console.log(`Uploaded file ${file.displayName} as: ${file.name}`);
+    return file;
 }
 
 export async function waitForFilesActive(files) {
