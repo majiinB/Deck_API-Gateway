@@ -49,7 +49,7 @@ The Deck API Gateway serves as a bridge between your "Deck" application and both
 - `GET /hi`: To check if the API is online
 - `POST /prompt/v1/openAI/:id`: Send prompt or message to OpenAI assistant.
 - `POST /prompt/v2/gemini/:id`: Send prompt or message to Gemini AI and also receive a response.
-- `GET /response/:id`: Retrieve OpenAI assistant response.
+- `GET /response/v1/openAI/:id`: Retrieve OpenAI assistant response.
 
 ---
 
