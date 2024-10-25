@@ -12,8 +12,8 @@ The Deck API Gateway serves as a bridge between your "Deck" application and both
 
 ## 🌟 Features
 
-### OpenAI and GEMINI Integration
-- **⚡ Flashcard Generation**: Utilize the OpenAI API to automatically generate flashcards from study materials (pdf files) and text inputs.
+### OpenAI and Gemini Integration
+- **⚡ Flashcard Generation**: Utilize the OpenAI API and Gemini to automatically generate flashcards from study materials (pdf files) and text inputs.
 
 ---
 
