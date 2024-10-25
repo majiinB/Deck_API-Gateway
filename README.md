@@ -4,7 +4,7 @@
 
 ---
 
-# 🎮 Deck API Gateway
+# 🚪 Deck API Gateway
 
 The Deck API Gateway serves as a bridge between your "Deck" application and both the OpenAI API and Gemini AI, facilitating the processing and connection of data. It provides endpoints for interacting with the Deck application and leveraging the power of these AI services for generating flashcards and enhancing productivity.
 
