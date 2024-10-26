@@ -124,7 +124,7 @@ export async function waitForFilesActive(files) {
  */
 export function constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions) {
     let prompt = 'I want you to act as a Professor providing students with questions and answers, strictly ' +
-        'in JSON format without introductory sentences. Format: {questions:{question: "1+1", answer: "2"}}. ';
+        'in JSON format without introductory sentences. Format: {questions:{question: "1+1", answer: "2"}, {question: "2+1", answer: "3"}}. ';
     let instruction = `Instructions: give me ${numberOfQuestions} questions with answers. `;
     let lastLinePrompt = 'Do not repeat questions. Keep them concise, with 1-2 sentence questions and brief answers.';
 
