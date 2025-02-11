@@ -25,16 +25,12 @@
  * 
  * @author Arthur M. Artugue
  * @created 2024-06-10
- * @updated 2024-10-12
+ * @updated 2025-11-02
  */
 
 import express from 'express';
 import messageRoute from './routes/promptRoute.js';
 import responseRoute from './routes/responseRoute.js';
-
-// INSTANTIATE OBJECTS AND REQUIREMENTS
-const PORT = 3000;
-const app = express();
 
 /**
  * Error handler middleware.
@@ -52,6 +48,8 @@ function errorHandler(err, req, res, next) {
     });
 }
 
+const app = express();
+
 // MIDDLEWARE
 /*
  * To parse and read body to json
@@ -62,13 +60,10 @@ app.use(errorHandler);
 //END POINTS
 app.use('/prompt', messageRoute);
 app.use('/response', responseRoute);
-app.get('/hi', async (req, res) => {
-    console.log('someone said hi');
-    return res.status(200).send('Hello I\'m Online!');
-});
+// app.get('/hi', async (req, res) => {
+//     console.log('someone said hi');
+//     return res.status(200).send('Hello I\'m Online!');
+// });
 
-// FIRE UP THE API
-app.listen(PORT, () => {
-    console.log(`Deck API is now listening to http://localhost:${PORT}`);
-})
+export default app;
 
