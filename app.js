@@ -1,7 +1,7 @@
 /**
  * Deck API
  * 
- * @file index.js
+ * @file app.js
  * @description This is the main entry point for the Deck API. It sets up the Express application,
  * 
  * Routes:
