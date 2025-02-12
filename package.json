@@ -12,8 +12,6 @@
   "dependencies": {
     "@google-cloud/storage": "^7.10.2",
     "@google/generative-ai": "^0.21.0",
-    "@langchain/core": "^0.3.39",
-    "@langchain/google-genai": "^0.1.8",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "firebase": "^10.11.1",

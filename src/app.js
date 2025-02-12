@@ -60,10 +60,10 @@ app.use(errorHandler);
 //END POINTS
 app.use('/prompt', messageRoute);
 app.use('/response', responseRoute);
-// app.get('/hi', async (req, res) => {
-//     console.log('someone said hi');
-//     return res.status(200).send('Hello I\'m Online!');
-// });
+app.get('/hi', async (req, res) => {
+    console.log('someone said hi');
+    return res.status(200).send('Hello I\'m Online!');
+});
 
 export default app;
 

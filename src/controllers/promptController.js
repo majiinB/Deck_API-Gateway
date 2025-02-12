@@ -1,4 +1,4 @@
-import { promptGemini, promptOpenAI } from '../services/promptService.js';
+import { promptGeminiService, promptOpenAI } from '../services/promptService.js';
 import { isValidInteger } from '../utils/utils.js';
 
 export const geminiPromptController = async (req, res) => {
@@ -14,7 +14,7 @@ export const geminiPromptController = async (req, res) => {
         return res.status(422).send('Invalid number of questions. It must be between 2 and 20.');
     }
 
-    const result = await promptGemini(req);
+    const result = await promptGeminiService(req);
 
     if (result.data) {
         return res.status(result.status).json(result.data)
