@@ -31,21 +31,15 @@
  * 
  * @author Arthur M. Artugue
  * @created 2024-06-10
- * @updated 2024-10-26
+ * @updated 2025-02-12
  */
 
 
 import express from 'express';
-import openai, { assistant } from '../config/openaiConfig.js';
-import { initializeApp } from 'firebase/app';
-import { createThread, extractPdfText, downloadPdf, deleteFile, isValidInteger } from '../functions/utils.js';
-import { sendPrompt, constructGoogleAIPrompt, downloadFile } from '../functions/gemini.utils.js';
-import config from '../config/firebaseConfig.js';
+import { geminiPromptController, openAiPromptController } from '../controllers/promptController.js';
 
 const router = express.Router();
 
-// Initialize Firebase app using provided configuration
-initializeApp(config);
 
 /**
  * Route: POST /v1/openAI/:id
@@ -62,85 +56,7 @@ initializeApp(config);
  *   - isNewMessage: Boolean indicating if a new thread should be created
  *   - threadID: Existing thread ID (if not a new message)
  */
-router.post('/v1/openAI/:id', async (req, res) => {
-    const { id } = req.params;
-    const { subject, topic, addDescription, pdfFileName, numberOfQuestions, isNewMessage, threadID } = req.body;
-
-    // Validate input: Either PDF or both subject and topic are required
-    if (!pdfFileName && (!subject || !topic)) {
-        return res.status(418).send('We need a message');
-    }
-
-    // Validate isNewMessage as a boolean
-    if (isNewMessage !== true && isNewMessage !== false) {
-        return res.status(419).send('isNewMessage must be true or false');
-    }
-
-    // Validate the number of questions
-    if (!isValidInteger(numberOfQuestions)) {
-        return res.status(420).send('Invalid number of questions. It must be a number between 2 and 20.');
-    }
-
-    // Prepare the prompt and PDF info placeholders
-    let prompt = `Instructions: give me ${numberOfQuestions} questions with answers.`;
-    let pdfInfo = 'Source of information to use:';
-    let lastLinePrompt = 'Do not repeat questions. Keep questions 1-2 sentences and answers 1 sentence or keypoint only.';
-
-    // Extract text from PDF if provided
-    if (pdfFileName) {
-        try {
-            const filePath = await downloadPdf(pdfFileName, id);
-            const extractedText = await extractPdfText(filePath);
-
-            if (!extractedText) {
-                return res.status(421).send('PDF extraction failed. Please use a valid PDF file.');
-            }
-
-            if (!deleteFile(filePath)) {
-                return res.status(422).send('PDF deletion failed on the server.');
-            }
-
-            pdfInfo += extractedText;
-        } catch (error) {
-            console.error('Error extracting PDF text:', error);
-            return res.status(501).send('Error during PDF text extraction.');
-        }
-    }
-
-    // Build the prompt based on input
-    if (pdfFileName) {
-        if (subject) prompt += ` The subject is ${subject}.`;
-        if (topic) prompt += ` The topic is ${topic}.`;
-        if (addDescription) prompt += ` Additional description: ${addDescription}.`;
-        prompt += pdfInfo;
-    } else {
-        if (!subject || !topic) {
-            return res.status(423).send('Subject and topic are required if no PDF is uploaded.');
-        }
-        if (subject) prompt += ` The subject is ${subject}.`;
-        if (topic) prompt += ` The topic is ${topic}.`;
-        if (addDescription) prompt += ` Additional description: ${addDescription}.`;
-    }
-
-    prompt += lastLinePrompt;
-
-    try {
-        const thread = await createThread(isNewMessage, threadID);
-        await openai.beta.threads.messages.create(thread, { role: 'user', content: prompt });
-
-        const run = await openai.beta.threads.runs.create(thread, {
-            assistant_id: assistant.id,
-            instructions: 'Act as a professor providing JSON-formatted Q&A. Return empty JSON if message is non-academic, vulgar, vague, or personal.'
-        });
-
-        return res.status(200).send({
-            thread_id: run.thread_id,
-            run_id: run.id
-        });
-    } catch (error) {
-        return res.status(424).send('Error processing the message route.');
-    }
-});
+router.post('/v1/openAI/:id', openAiPromptController);
 
 /**
  * Route: POST /v2/gemini/:id
@@ -156,47 +72,6 @@ router.post('/v1/openAI/:id', async (req, res) => {
  *   - fileExtension: File extension (e.g., pdf, txt)
  *   - numberOfQuestions: Number of questions to generate (2-20)
  */
-router.post('/v2/gemini/:id', async (req, res) => {
-    const { id } = req.params;
-    const { subject, topic, addDescription, fileName, fileExtension, numberOfQuestions } = req.body;
-    let response;
-
-    // Validate input: Either file or both subject and topic are required
-    if (!fileName && (!subject || !topic)) {
-        return res.status(400).send('Subject or topic is required if no file is uploaded.');
-    }
-
-    // Validate the number of questions
-    if (!isValidInteger(numberOfQuestions)) {
-        return res.status(422).send('Invalid number of questions. It must be between 2 and 20.');
-    }
-
-    const prompt = constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions);
-
-    if (fileName) {
-        if (!fileExtension) {
-            return res.status(422).send('File extension is required.');
-        }
-
-        try {
-            const filePath = await downloadFile(fileName, fileExtension, id);
-
-            if (!filePath) {
-                return res.status(500).send('Error retrieving the file from the server.');
-            }
-
-            response = await sendPrompt(true, prompt, filePath, fileExtension);
-            deleteFile(filePath);
-
-            return res.status(200).json(response);
-        } catch (error) {
-            console.error('Error during file retrieval:', error);
-            return res.status(500).send('Error retrieving the file from the server.');
-        }
-    } else {
-        response = await sendPrompt(false, prompt);
-        return res.status(200).json(response);
-    }
-});
+router.post('/v2/gemini/:id', geminiPromptController);
 
 export default router;

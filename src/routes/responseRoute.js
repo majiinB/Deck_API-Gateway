@@ -34,8 +34,7 @@
 
 
 import express from 'express';
-import openai from '../config/openaiConfig.js';
-import { delay } from '../functions/utils.js';
+import { openAiResponseControllers } from '../controllers/responseController.js';
 
 const router = express.Router();
 
@@ -47,71 +46,7 @@ const router = express.Router();
  * @query {string} run_id - The ID of the thread's run to monitor.
  * @returns {JSON} - A list of parsed messages or an error message.
  */
-router.get('/v1/openAI/:id', async (req, res) => {
-    const { id } = req.params;
-    const { thread_id, run_id } = req.query;
-    const MAX_TRIES = 5;
-    let status = 'queued';
-    let tries = 0;
-
-    // Retry loop to monitor the status of the run until it's 'completed' or the max tries are reached
-    while (status !== 'completed' && tries < MAX_TRIES) {
-        try {
-            // Retrieve the current status of the thread's run
-            let retrieve = await openai.beta.threads.runs.retrieve(thread_id, run_id);
-            status = retrieve.status;
-            tries++;
-
-            // Add a delay before making the next retrieval attempt
-            await delay(1500);
-        } catch (error) {
-            console.error(`Error retrieving status: ${error.message}`);
-            return res.status(500).json({ error: 'Error retrieving run status.' });
-        }
-    }
-
-    // If status is not 'completed' after max tries, return an error response
-    if (status !== 'completed' && tries === MAX_TRIES) {
-        return res.status(425).send({
-            message: `An error occurred and your request is not completed. Please try again.\n
-            Number of tries: ${tries}\nExpected status: completed\nCurrent status: ${status}`
-        });
-    }
-
-    // If the status is 'completed', attempt to retrieve messages from the thread
-    if (status === 'completed') {
-        try {
-            const response = await openai.beta.threads.messages.list(thread_id);
-
-            const parsedMessages = [];
-            const unparsedMessages = [];
-
-            // Parse each message's content to JSON format
-            response.body.data.forEach((message) => {
-                const content = message.content[0]; // Assumes each message has only one content object
-                if (content && content.type === 'text' && content.text && content.text.value) {
-                    try {
-                        const parsedContent = JSON.parse(content.text.value);
-                        parsedMessages.push(parsedContent);
-                    } catch (error) {
-                        // If parsing fails, add the raw message to unparsedMessages
-                        unparsedMessages.push(content.text.value);
-                    }
-                }
-            });
-
-            console.log('Unparsed messages:', unparsedMessages); // Debugging output
-
-            // Send the parsed messages as a JSON response
-            res.status(200).json(parsedMessages);
-
-        } catch (error) {
-            // Handle any errors during message retrieval or parsing
-            console.error(`Error retrieving messages: ${error.message}`);
-            res.status(502).json({ error: error.message });
-        }
-    }
-});
+router.get('/v1/openAI/:id', openAiResponseControllers);
 
 // Placeholder for future route
 // router.get('/v2/gemini/:id');
