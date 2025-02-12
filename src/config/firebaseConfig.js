@@ -24,6 +24,7 @@
  */
 
 import * as dotenv from 'dotenv';
+import { initializeApp } from 'firebase/app';
 dotenv.config(); // Load environment variables from .env file
 
 // TODO: Add SDKs for Firebase products you want to use 
@@ -43,4 +44,6 @@ const firebaseConfig = {
     appId: process.env.APP_ID.toString()  // Firebase app ID
 };
 
-export default firebaseConfig; // Export configuration for use in Firebase initialization
+const firebaseApp = initializeApp(firebaseConfig);
+
+export default firebaseApp; // Export configuration for use in Firebase initialization
