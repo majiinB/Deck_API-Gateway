@@ -156,3 +156,12 @@ export function cleanString(inputString) {
     cleanedString = cleanedString.replace(/•/g, '');            // Remove bullet characters
     return cleanedString;
 }
+
+export function isJson(obj) {
+    try {
+        JSON.parse(obj);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}

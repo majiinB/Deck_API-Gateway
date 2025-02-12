@@ -31,6 +31,7 @@
 import * as dotenv from 'dotenv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleAIFileManager } from '@google/generative-ai/server';
+import { isJson } from '../utils/utils.js';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -53,12 +54,6 @@ export const fileManager = new GoogleAIFileManager(apiKey);
 export const genAI = new GoogleGenerativeAI(apiKey);
 
 /**
- * Instance of the specific generative model (Gemini) used for AI tasks.
- * This model provides flashcard-like generation features.
- */
-export const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-/**
  * Configuration options to control the behavior of AI-generated responses.
  * - temperature: Controls randomness (higher = more random responses).
  * - topP: Sets nucleus sampling (selects tokens from the top 95% probability mass).
@@ -66,10 +61,37 @@ export const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
  * - maxOutputTokens: Maximum number of tokens the output can contain.
  * - responseMimeType: MIME type of the response (JSON in this case).
  */
-export const generationConfig = {
-    temperature: 1,              // Randomness level for response generation
-    topP: 0.95,                  // Nucleus sampling threshold
-    topK: 64,                    // Top-K sampling limit
-    maxOutputTokens: 8192,       // Maximum number of tokens in the output
-    responseMimeType: "application/json"  // MIME type of the generated response
-};
+
+/**
+ * Instance of the specific generative model (Gemini) used for AI tasks.
+ * This model provides flashcard-like generation features.
+ */
+export const getModel = (format = null) => {
+    let generationConfig = {
+        temperature: 0.8,            // Randomness level for response generation
+        topP: 0.95,                  // Nucleus sampling threshold
+        topK: 64,                    // Top-K sampling limit
+        maxOutputTokens: 8192,       // Maximum number of tokens in the output
+        responseMimeType: "application/json"  // MIME type of the generated response
+    };
+
+    if (format !== null) {
+        if (isJson(format)) {
+            generationConfig = {
+                temperature: 0.8,            // Randomness level for response generation
+                topP: 0.95,                  // Nucleus sampling threshold
+                topK: 64,                    // Top-K sampling limit
+                maxOutputTokens: 8192,       // Maximum number of tokens in the output
+                responseMimeType: "application/json",  // MIME type of the generated response
+                responseSchema: format
+            };
+        }
+    }
+
+    return genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+        generationConfig: generationConfig
+    });
+}
+
+

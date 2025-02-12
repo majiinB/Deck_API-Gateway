@@ -19,7 +19,7 @@
  * @updated 2024-10-26
  */
 
-import { model, fileManager } from '../config/geminiConfig.js';
+import { getModel, fileManager } from '../config/geminiConfig.js';
 import { Storage } from '@google-cloud/storage';
 import mime from 'mime';
 import * as dotenv from 'dotenv';
@@ -38,6 +38,34 @@ dotenv.config();
  */
 export async function sendPrompt(isTherePdf, prompt, filePath = "", fileExtension = "") {
     let result;
+    const schema = {
+        description: "List of defintion with terms ",
+        type: "object",
+        properties: {
+            definition_and_terms: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        definition: {
+                            type: "string",
+                            description: "The definition of the term",
+                            nullable: false,
+                        },
+                        term: {
+                            type: "string",
+                            description: "The term that the defintion pertains to",
+                            nullable: false,
+                        },
+                    },
+                    required: ["defintion", "term"],
+                },
+            },
+        },
+        required: ["definition_and_terms"],
+    };
+
+    const model = getModel(schema);
 
     if (isTherePdf) {
         const fileType = getMimeType(fileExtension);
@@ -58,7 +86,7 @@ export async function sendPrompt(isTherePdf, prompt, filePath = "", fileExtensio
     }
 
     const response = result.response.candidates[0].content.parts[0].text;
-    return extractGoogleAIJsonFromText(response);
+    return JSON.parse(response);
 }
 
 /**
@@ -122,11 +150,12 @@ export async function waitForFilesActive(files) {
  * @param {number} numberOfQuestions - Number of questions to generate.
  * @returns {string} - The constructed JSON prompt.
  */
-export function constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions) {
-    let prompt = 'I want you to act as a Professor providing students with questions and answers, strictly ' +
-        'in JSON format without introductory sentences. Format: {questions:{question: "1+1", answer: "2"}, {question: "2+1", answer: "3"}}. ';
-    let instruction = `Instructions: give me ${numberOfQuestions} questions with answers. `;
-    let lastLinePrompt = 'Do not repeat questions. Keep them concise, with 1-2 sentence questions and brief answers.';
+export function constructGoogleAIPrompt(topic, subject, addDescription, numberOfTerms) {
+    let prompt = 'I want you to act as a Professor providing students with terminologies and their definitions. ';
+    let instruction = `Instructions: Provide ${numberOfTerms} terms with their definitions. `;
+    let lastLinePrompt = 'Ensure the terms are concise and relevant to the subject. Do not provide question-and-answer pairs. ' +
+        'Do not include computations or numerical problem-solving examples. ' +
+        'Do not start terms with "Who," "What," "Where," or "When."';
 
     if (subject) prompt += `The subject is ${subject}. `;
     if (topic) prompt += `The topic is ${topic}. `;
@@ -135,6 +164,7 @@ export function constructGoogleAIPrompt(topic, subject, addDescription, numberOf
 
     return prompt;
 }
+
 
 /**
  * Extracts and parses JSON content from the response text.
