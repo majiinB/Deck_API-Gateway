@@ -1,4 +1,5 @@
 import { promptGemini, promptOpenAI } from '../services/promptService.js';
+import { isValidInteger } from '../utils/utils.js';
 
 export const geminiPromptController = async (req, res) => {
     const { subject, topic, fileName, numberOfQuestions } = req.body;

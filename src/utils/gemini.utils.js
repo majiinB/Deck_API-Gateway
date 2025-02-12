@@ -143,22 +143,32 @@ export function constructGoogleAIPrompt(topic, subject, addDescription, numberOf
  * @returns {Object} - The parsed JSON object or an empty object if parsing fails.
  */
 export function extractGoogleAIJsonFromText(response) {
-    if (!response || typeof response !== 'string') {
-        console.error('Invalid input: response.text is missing or not a string');
+    if (!response) {
+        console.error('Invalid input: response is missing');
         return {};
     }
 
-    const cleanedText = response
-        .replace(/^```json\s*/, '')
-        .replace(/```$/, '');
+    // If response is already an object, return it directly
+    if (typeof response === 'object') {
+        return response;
+    }
 
     try {
+        // Clean possible markdown formatting
+        const cleanedText = response
+            .trim()
+            .replace(/^```json\s*/, '')  // Remove leading ```json
+            .replace(/```$/, '');        // Remove trailing ```
+
+        console.log("Cleaned response before parsing:", cleanedText);
+
         return JSON.parse(cleanedText);
     } catch (error) {
         console.error('Failed to parse JSON:', error);
         return {};
     }
 }
+
 
 /**
  * Downloads a file from Google Cloud Storage.

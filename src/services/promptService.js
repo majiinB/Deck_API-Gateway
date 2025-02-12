@@ -4,7 +4,7 @@ import { createThread, extractPdfText, downloadPdf, deleteFile, isValidInteger }
 import { sendPrompt, constructGoogleAIPrompt, downloadFile } from '../utils/gemini.utils.js';
 
 export const promptGemini = async (request) => {
-    const { subject, topic, addDescription, fileName, fileExtension, numberOfQuestions } = req.body;
+    const { subject, topic, addDescription, fileName, fileExtension, numberOfQuestions } = request.body;
 
     const prompt = constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions);
 

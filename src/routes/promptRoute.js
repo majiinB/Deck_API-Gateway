@@ -72,6 +72,6 @@ router.post('/v1/openAI/:id', openAiPromptController);
  *   - fileExtension: File extension (e.g., pdf, txt)
  *   - numberOfQuestions: Number of questions to generate (2-20)
  */
-router.post('/v2/gemini/:id', geminiPromptController);
+router.post('/v2/gemini/:id', geminiPromptController)
 
 export default router;
