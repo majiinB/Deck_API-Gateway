@@ -1,30 +1,5 @@
-/**
- * Gemini Utility Functions
- * 
- * @file gemini.utils.js
- * @description This module provides utility functions for interacting with the Gemini model, handling file uploads,
- * downloads, prompt construction, and response parsing. It supports PDF input processing and manages asynchronous 
- * file states from Gemini services.
- * 
- * Dependencies:
- * - model: Gemini model configuration from geminiConfig.js
- * - fileManager: File handling service from geminiConfig.js
- * - Google Cloud Storage: Handles file storage and download operations
- * - mime: Library for determining MIME types based on file extensions
- * - dotenv: Loads environment variables from a .env file
- * 
- * @module gemini.utils
- * @author Arthur M. Artugue
- * @created 2024-06-10
- * @updated 2024-10-26
- */
-
 import { getModel, fileManager } from '../config/geminiConfig.js';
-import { Storage } from '@google-cloud/storage';
-import mime from 'mime';
-import * as dotenv from 'dotenv';
 
-dotenv.config();
 
 /**
  * Sends a prompt to the Gemini model, optionally including a PDF file.
@@ -90,17 +65,6 @@ export async function sendPrompt(isTherePdf, prompt, filePath = "", fileExtensio
 }
 
 /**
- * Gets the MIME type for a given file extension.
- * 
- * @param {string} extension - The file extension (e.g., 'pdf', 'jpg').
- * @returns {string} - The corresponding MIME type or 'application/octet-stream' if not found.
- */
-export function getMimeType(extension) {
-    const ext = extension.startsWith('.') ? extension : `.${extension}`;
-    return mime.getType(ext) || 'application/octet-stream';
-}
-
-/**
  * Uploads a file to Gemini and returns the file object.
  * 
  * @async
@@ -163,68 +127,4 @@ export function constructGoogleAIPrompt(topic, subject, addDescription, numberOf
     prompt += instruction + lastLinePrompt;
 
     return prompt;
-}
-
-
-/**
- * Extracts and parses JSON content from the response text.
- * 
- * @param {string} response - The response text from the model.
- * @returns {Object} - The parsed JSON object or an empty object if parsing fails.
- */
-export function extractGoogleAIJsonFromText(response) {
-    if (!response) {
-        console.error('Invalid input: response is missing');
-        return {};
-    }
-
-    // If response is already an object, return it directly
-    if (typeof response === 'object') {
-        return response;
-    }
-
-    try {
-        // Clean possible markdown formatting
-        const cleanedText = response
-            .trim()
-            .replace(/^```json\s*/, '')  // Remove leading ```json
-            .replace(/```$/, '');        // Remove trailing ```
-
-        console.log("Cleaned response before parsing:", cleanedText);
-
-        return JSON.parse(cleanedText);
-    } catch (error) {
-        console.error('Failed to parse JSON:', error);
-        return {};
-    }
-}
-
-
-/**
- * Downloads a file from Google Cloud Storage.
- * 
- * @async
- * @param {string} fileName - The name of the file to download.
- * @param {string} fileExtension - The file extension to append to the downloaded file.
- * @param {string} id - The unique identifier for the file.
- * @returns {Promise<string>} - The local path to the downloaded file.
- */
-export async function downloadFile(fileName, fileExtension, id) {
-    let filePath = '';
-    try {
-        const storage = new Storage({
-            keyFilename: process.env.KEY_FILE.toString(),
-        });
-
-        const bucketName = process.env.STORAGE_BUCKET.toString();
-        const destFilename = `download-${id}${fileExtension}`;
-        const options = { destination: `./downloads/${destFilename}` };
-
-        await storage.bucket(bucketName).file(`uploads/${id}/${fileName}`).download(options);
-        filePath = `./downloads/${destFilename}`;
-    } catch (error) {
-        console.log(`DOWNLOAD PDF ERROR: ${error}`);
-        filePath = '';
-    }
-    return filePath;
 }

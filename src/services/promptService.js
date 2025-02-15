@@ -1,7 +1,8 @@
 import openai from "../config/openaiConfig.js";
 import firebaseApp from "../config/firebaseConfig.js";
-import { createThread, extractPdfText, downloadPdf, deleteFile, isValidInteger } from '../utils/utils.js';
-import { sendPrompt, constructGoogleAIPrompt, downloadFile } from '../utils/gemini.utils.js';
+import { createThread, extractPdfText, deleteFile, isValidInteger } from '../utils/utils.js';
+import { sendPrompt, constructGoogleAIPrompt } from '../services/aiService.js';
+import { downloadFile, downloadPdf } from "../repositories/fileRepository.js";
 
 export const promptGeminiService = async (request) => {
     const { subject, topic, addDescription, fileName, fileExtension, numberOfQuestions } = request.body;

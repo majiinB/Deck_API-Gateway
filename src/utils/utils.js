@@ -15,7 +15,6 @@
  */
 
 import openai from '../config/openaiConfig.js';
-import { Storage } from '@google-cloud/storage';
 import { PDFExtract } from 'pdf.js-extract';
 import fs from 'fs';
 import * as dotenv from 'dotenv';
@@ -56,35 +55,6 @@ export async function createThread(isNewMessage, givenThread) {
         thread = givenThread;
     }
     return thread;
-}
-
-/**
- * Downloads a PDF from Google Cloud Storage.
- * @param {string} fileName - The name of the PDF file to download.
- * @param {string} id - A unique identifier used to locate the file.
- * @returns {Promise<string>} - The file path where the PDF was downloaded, or an empty string if an error occurs.
- */
-export async function downloadPdf(fileName, id) {
-    let filePath = '';
-    try {
-        console.log(process.env.KEY_FILE.toString());
-        const storage = new Storage({
-            keyFilename: process.env.KEY_FILE.toString(),
-        });
-
-        let bucketName = process.env.STORAGE_BUCKET.toString();
-        let destFilename = `download-${id}.pdf`; // Name of the file when downloaded
-        const options = {
-            destination: `./downloads/${destFilename}`,
-        };
-
-        await storage.bucket(bucketName).file(`uploads/${id}/${fileName}`).download(options);
-        filePath = `./downloads/${destFilename}`;
-    } catch (error) {
-        console.log(`DOWNLOAD PDF ERROR: ${error}`);
-        return '';
-    }
-    return filePath;
 }
 
 /**
@@ -163,5 +133,49 @@ export function isJson(obj) {
         return true;
     } catch (error) {
         return false;
+    }
+}
+
+/**
+ * Gets the MIME type for a given file extension.
+ * 
+ * @param {string} extension - The file extension (e.g., 'pdf', 'jpg').
+ * @returns {string} - The corresponding MIME type or 'application/octet-stream' if not found.
+ */
+export function getMimeType(extension) {
+    const ext = extension.startsWith('.') ? extension : `.${extension}`;
+    return mime.getType(ext) || 'application/octet-stream';
+}
+
+/**
+ * Extracts and parses JSON content from the response text.
+ * 
+ * @param {string} response - The response text from the model.
+ * @returns {Object} - The parsed JSON object or an empty object if parsing fails.
+ */
+export function extractGoogleAIJsonFromText(response) {
+    if (!response) {
+        console.error('Invalid input: response is missing');
+        return {};
+    }
+
+    // If response is already an object, return it directly
+    if (typeof response === 'object') {
+        return response;
+    }
+
+    try {
+        // Clean possible markdown formatting
+        const cleanedText = response
+            .trim()
+            .replace(/^```json\s*/, '')  // Remove leading ```json
+            .replace(/```$/, '');        // Remove trailing ```
+
+        console.log("Cleaned response before parsing:", cleanedText);
+
+        return JSON.parse(cleanedText);
+    } catch (error) {
+        console.error('Failed to parse JSON:', error);
+        return {};
     }
 }
