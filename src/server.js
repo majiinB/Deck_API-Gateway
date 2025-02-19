@@ -1,5 +1,5 @@
 /**
- * Deck API
+ * Deck API - Server
  * 
  * @file server.js
  * @description This is the main entry point for the Deck API.

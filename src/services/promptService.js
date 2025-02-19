@@ -21,7 +21,7 @@
  */
 
 import openai from "../config/openaiConfig.js";
-import { createThread, extractPdfText, deleteFile, isValidInteger } from '../utils/utils.js';
+import { createThread, extractPdfText, deleteFile } from '../utils/utils.js';
 import { sendPrompt, constructGoogleAIPrompt } from '../services/aiService.js';
 import { downloadFile, downloadPdf } from "../repositories/fileRepository.js";
 

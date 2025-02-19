@@ -1,3 +1,21 @@
+/**
+ * Deck API - File Repository
+ *
+ * @file fileRepository.js
+ * @description Provides access to google cloud files.
+ * 
+ * This module interacts with google cloud in order to access files uploaded by users using firebase.
+ * 
+ * @module fileRepository
+ * 
+ * @requires google-cloud/storage
+ * 
+ * @author Arthur M. Artugue
+ * @created 2025-02-15
+ * @updated 2025-02-19
+ * 
+ */
+
 import { Storage } from '@google-cloud/storage';
 import * as dotenv from 'dotenv';
 dotenv.config();

@@ -1,17 +1,27 @@
 /**
- * utils.js
+ * Deck API - Utils
+ *
+ * @file utils.js
+ * @description Provides services for AI-related actions.
  * 
  * This utility module provides helper functions for tasks such as:
  * - Delaying code execution.
  * - Validating integer input.
  * - Creating and managing threads with the OpenAI API.
- * - Downloading PDF files from Google Cloud Storage.
  * - Extracting text from PDF files.
  * - Deleting files from the local filesystem.
  * - Cleaning string content by removing special characters, multiple spaces, and bullets.
  * 
- * These functions help streamline common operations needed across the application, 
- * improving modularity and code reusability.
+ * @module utils
+ * 
+ * @requires ../config/openaiConfig.js
+ * @requires pdf.js-extract
+ * @requires flashcard
+ * 
+ * @author Arthur M. Artugue
+ * @created 2024-06-10
+ * @updated 2025-02-19
+ * 
  */
 
 import openai from '../config/openaiConfig.js';
