@@ -37,6 +37,7 @@
 
 import express from 'express';
 import { geminiPromptController, openAiPromptController } from '../controllers/promptController.js';
+import { verifyFirebaseToken } from '../config/firebaseAdminConfig.js';
 
 const router = express.Router();
 
