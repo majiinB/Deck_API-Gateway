@@ -55,8 +55,11 @@ const router = express.Router();
  *   - numberOfQuestions: Number of questions to generate (2-20)
  *   - isNewMessage: Boolean indicating if a new thread should be created
  *   - threadID: Existing thread ID (if not a new message)
+ * 
+ * OpenAi is disabled
+ * router.post('/v1/openAI/:id', openAiPromptController);
  */
-router.post('/v1/openAI/:id', openAiPromptController);
+
 
 /**
  * Route: POST /v2/gemini/:id

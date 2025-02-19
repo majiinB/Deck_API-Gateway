@@ -17,15 +17,15 @@
  * - errorHandler: Middleware function for error handling.
  * 
  * Server:
- * - Listens on port 3000.
+ * - Listens on port 3000. (Depending on env configuration)
  * 
  * To start the server, run this file. The server will listen on the specified port.
  * 
- * @module index
+ * @module app
  * 
  * @author Arthur M. Artugue
  * @created 2024-06-10
- * @updated 2025-11-02
+ * @updated 2025-02-19
  */
 
 import express from 'express';
@@ -42,7 +42,6 @@ import responseRoute from './routes/responseRoute.js';
  * @param {Function} next - The next middleware function.
  */
 function errorHandler(err, req, res, next) {
-    //console.error(err.stack); // Log the error stack trace for debugging
     res.status(422).json({
         error: 'Unprocessable Entity, check your request data'
     });
@@ -59,7 +58,10 @@ app.use(errorHandler);
 
 //END POINTS
 app.use('/prompt', messageRoute);
-app.use('/response', responseRoute);
+
+// Used for openAI, uncomment if will be used 
+// app.use('/response', responseRoute);
+
 app.get('/hi', async (req, res) => {
     console.log('someone said hi');
     return res.status(200).send('Hello I\'m Online!');

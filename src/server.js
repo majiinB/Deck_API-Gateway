@@ -9,8 +9,8 @@
  * @module server
  * 
  * @author Arthur M. Artugue
- * @created 2025-11-02
- * @updated 2025-11-02
+ * @created 2025-02-11
+ * @updated 2025-02-19
  */
 
 import * as dotenv from 'dotenv';
@@ -18,7 +18,7 @@ import app from './app.js'
 
 dotenv.config();
 
-// Instantiate Objects
+// Instantiate port (3000 is default if no variable is found)
 const PORT = process.env.PORT || 3000;
 
 // FIRE UP THE API
