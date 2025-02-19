@@ -1,40 +1,102 @@
+/**
+ * Deck API - Prompt Service
+ *
+ * @file promptService.js
+ * @description Provides services for processing AI-generated flashcard prompts.
+ * 
+ * This module interacts with AI models (Gemini and OpenAI) to generate flashcards based on user input.
+ * It handles file retrieval, prompt construction, and API communication.
+ * 
+ * @module promptService
+ * 
+ * @requires ../config/openaiConfig.js
+ * @requires ../utils/utils.js
+ * @requires ../services/aiService.js
+ * @requires ../repositories/fileRepository.js
+ * 
+ * @author Arthur M. Artugue
+ * @created 2025-02-12
+ * @updated 2025-02-19
+ * 
+ */
+
 import openai from "../config/openaiConfig.js";
-import firebaseApp from "../config/firebaseConfig.js";
 import { createThread, extractPdfText, deleteFile, isValidInteger } from '../utils/utils.js';
 import { sendPrompt, constructGoogleAIPrompt } from '../services/aiService.js';
 import { downloadFile, downloadPdf } from "../repositories/fileRepository.js";
 
-export const promptGeminiService = async (request) => {
+/**
+ * Generates AI-generated flashcards using Gemini.
+ *
+ * @async
+ * @function promptGeminiService
+ * @param {Object} request - The HTTP request object.
+ * @param {string} id - The request owner ID.
+ * @returns {Promise<Object>} Response object containing the generated flashcards or error message.
+ */
+export const promptGeminiService = async (request, id) => {
     const { subject, topic, addDescription, fileName, fileExtension, numberOfQuestions } = request.body;
+
+    console.log("log id" + id);
+
 
     const prompt = constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions);
 
-    if (fileName) {
-        if (!fileExtension) {
-            return { status: 422, message: 'File extension is required.' };
-        }
+    if (fileName?.trim()) {
+        if (!fileExtension?.trim()) return { status: 422, message: 'File extension is required.', data: null };
 
         try {
             const filePath = await downloadFile(fileName, fileExtension, id);
 
-            if (!filePath) {
-                return { status: 500, message: 'Error retrieving the file from the server.' };
-            }
+            if (!filePath) return { status: 500, message: 'Error retrieving the file from the server.', data: null };
 
             const response = await sendPrompt(true, prompt, filePath, fileExtension);
-            deleteFile(filePath);
 
-            return { status: 200, data: response };
+            return {
+                status: 200,
+                request_owner_id: id,
+                message: response.message,
+                data: response
+            };
         } catch (error) {
-            console.error('Error during file retrieval:', error);
-            return { status: 500, message: 'Error retrieving the file from the server.' };
+            return {
+                status: 500,
+                request_owner_id: id,
+                message: 'An Error has occured while sending information to AI.',
+                data: null
+            };
+        } finally {
+            deleteFile(filePath);
         }
     } else {
-        const response = await sendPrompt(false, prompt);
-        return { status: 200, data: response };
+        try {
+            const response = await sendPrompt(false, prompt);
+            return {
+                status: 200,
+                request_owner_id: id,
+                message: response.message,
+                data: response.data
+            };
+        } catch (error) {
+            console.error('Error during file retrieval:', error);
+            return {
+                status: 500,
+                request_owner_id: id,
+                message: 'An Error has occured and while retrieving response from AI',
+                data: null
+            };
+        }
     }
 }
 
+/**
+ * Generates AI-generated flashcards using OpenAI.
+ *
+ * @async
+ * @function promptOpenAI
+ * @param {Object} request - The HTTP request object.
+ * @returns {Promise<Object>} Response object containing the generated flashcards or error message.
+ */
 export const promptOpenAI = async (request) => {
     const { subject, topic, addDescription, pdfFileName, numberOfQuestions, isNewMessage, threadID } = request.body;
     let prompt = `Instructions: give me ${numberOfQuestions} questions with answers.`;

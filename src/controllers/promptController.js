@@ -33,23 +33,17 @@ export const geminiPromptController = async (req, res) => {
     const { subject, topic, fileName, numberOfQuestions } = req.body;
 
     // Validate input: Either file or both subject and topic are required
-    if (!fileName && (!subject || !topic)) {
-        return res.status(400).send('Subject or topic is required if no file is uploaded.');
+    if (!fileName?.trim() && (!subject?.trim() || !topic?.trim())) {
+        return res.status(400).json({ message: 'Subject or topic is required if no file is uploaded.' });
     }
 
     // Validate the number of questions
     if (!isValidInteger(numberOfQuestions)) {
-        return res.status(422).send('Invalid number of questions. It must be between 2 and 20.');
+        return res.status(422).json({ message: 'Invalid number of questions. It must be between 2 and 20.' });
     }
 
-    const result = await promptGeminiService(req);
-
-    if (result.data) {
-        return res.status(result.status).json(result.data)
-    } else {
-        return res.status(result.status).send(result.message)
-    }
-
+    const result = await promptGeminiService(req, req.params.id);
+    return res.status(result.status).json(result)
 }
 
 /**
