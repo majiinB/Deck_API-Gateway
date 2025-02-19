@@ -1,6 +1,34 @@
+/**
+ * Deck API - Prompt Controller
+ * 
+ * @file promptController.js
+ * @description Handles AI prompt requests for Gemini and OpenAI.
+ * 
+ * This module provides controllers for processing AI-generated flashcard prompts. 
+ * It validates user input and interacts with the respective AI services.
+ * 
+ * @module promptController
+ * 
+ * @requires ../services/promptService.js
+ * @requires ../utils/utils.js
+ * 
+ * @author Arthur M. Artugue
+ * @created 2025-02-12
+ * @updated 2025-02-19
+ */
+
 import { promptGeminiService, promptOpenAI } from '../services/promptService.js';
 import { isValidInteger } from '../utils/utils.js';
 
+/**
+ * Handles AI prompt requests using Gemini AI.
+ * 
+ * @async
+ * @function geminiPromptController
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ * @returns {Object} JSON response with generated prompts or an error message.
+ */
 export const geminiPromptController = async (req, res) => {
     const { subject, topic, fileName, numberOfQuestions } = req.body;
 
@@ -24,17 +52,26 @@ export const geminiPromptController = async (req, res) => {
 
 }
 
+/**
+ * Handles AI prompt requests using OpenAI.
+ * 
+ * @async
+ * @function openAiPromptController
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ * @returns {Object} JSON response with generated prompts or an error message.
+ */
 export const openAiPromptController = async (req, res) => {
     const { subject, topic, pdfFileName, numberOfQuestions, isNewMessage } = req.body;
 
     // Validate input: Either PDF or both subject and topic are required
     if (!pdfFileName && (!subject || !topic)) {
-        return res.status(418).send('We need a message');
+        return res.status(400).send('We need a message');
     }
 
     // Validate isNewMessage as a boolean
     if (isNewMessage !== true && isNewMessage !== false) {
-        return res.status(419).send('isNewMessage must be true or false');
+        return res.status(400).send('isNewMessage must be true or false');
     }
 
     // Validate the number of questions

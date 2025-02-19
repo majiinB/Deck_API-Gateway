@@ -35,7 +35,7 @@ export function delay(ms) {
  * @returns {boolean} - True if the value is an integer between 2 and 20, otherwise false.
  */
 export function isValidInteger(value) {
-    return Number.isInteger(value) && value > 1 && value <= 20;
+    return typeof value === 'number' && Number.isInteger(value) && value > 1 && value <= 20;
 }
 
 /**
