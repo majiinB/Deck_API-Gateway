@@ -31,6 +31,7 @@
 import express from 'express';
 import messageRoute from './routes/promptRoute.js';
 import responseRoute from './routes/responseRoute.js';
+import cors from 'cors';
 
 /**
  * Error handler middleware.
@@ -42,10 +43,25 @@ import responseRoute from './routes/responseRoute.js';
  * @param {Function} next - The next middleware function.
  */
 function errorHandler(err, req, res, next) {
-    res.status(422).json({
-        error: 'Unprocessable Entity, check your request data'
-    });
+    if (err.message === 'Not allowed by CORS') {
+        return res.status(403).json({ error: 'CORS policy blocked this request' });
+    } else {
+        res.status(422).json({
+            error: 'Unprocessable Entity, check your request data'
+        });
+    }
 }
+const corsOptions = {
+    origin: (origin, callback) => {
+        // console.log(`CORS Request from: ${origin || 'No Origin'}`); for debugging 
+        const allowedOrigins = ['https://frontend.com'];
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true); // Allow request
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    }
+};
 
 const app = express();
 
@@ -53,6 +69,7 @@ const app = express();
 /*
  * To parse and read body to json
  */
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(errorHandler);
 
