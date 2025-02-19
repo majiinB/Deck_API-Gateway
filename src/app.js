@@ -32,6 +32,7 @@ import express from 'express';
 import messageRoute from './routes/promptRoute.js';
 import responseRoute from './routes/responseRoute.js';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 
 /**
  * Error handler middleware.
@@ -51,6 +52,7 @@ function errorHandler(err, req, res, next) {
         });
     }
 }
+
 const corsOptions = {
     origin: (origin, callback) => {
         // console.log(`CORS Request from: ${origin || 'No Origin'}`); for debugging 
@@ -63,6 +65,14 @@ const corsOptions = {
     }
 };
 
+
+const limiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 7, // Limit each IP to 100 requests per windowMs
+    message: { error: "Too many requests, please try again later." },
+    headers: true, // Send `X-RateLimit-*` headers
+});
+
 const app = express();
 
 // MIDDLEWARE
@@ -70,6 +80,7 @@ const app = express();
  * To parse and read body to json
  */
 app.use(cors(corsOptions));
+app.use(limiter);
 app.use(express.json());
 app.use(errorHandler);
 
