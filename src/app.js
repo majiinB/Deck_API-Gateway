@@ -29,8 +29,7 @@
  */
 
 import express from 'express';
-import messageRoute from './routes/promptRoute.js';
-import responseRoute from './routes/responseRoute.js';
+import flashcardRoute from './routes/flashcardRoute.js';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 
@@ -65,7 +64,6 @@ const corsOptions = {
     }
 };
 
-
 const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 7, // Limit each IP to 100 requests per windowMs
@@ -85,10 +83,7 @@ app.use(express.json());
 app.use(errorHandler);
 
 //END POINTS
-app.use('/prompt', messageRoute);
-
-// Used for openAI, uncomment if will be used 
-// app.use('/response', responseRoute);
+app.use('/flashcard', flashcardRoute);
 
 app.get('/hi', async (req, res) => {
     console.log('someone said hi');
