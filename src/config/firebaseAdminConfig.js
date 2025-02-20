@@ -12,6 +12,7 @@ admin.initializeApp({
 
 export const verifyFirebaseToken = async (req, res, next) => {
     const authHeader = req.headers.authorization;
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({ error: "Unauthorized: No token provided" });
     }
@@ -20,11 +21,9 @@ export const verifyFirebaseToken = async (req, res, next) => {
 
     try {
         const decodedToken = await admin.auth().verifyIdToken(token);
-        console.log("token" + token);
         req.user = decodedToken;  // Attach user data to request
-        console.log("user" + req.user);
         next(); // Proceed to the next middleware
     } catch (error) {
-        return res.status(403).json({ error: "Unauthorized: Invalid token" });
+        return res.status(403).json({ error: "Unauthorized: Invalid token: " + error });
     }
 };
