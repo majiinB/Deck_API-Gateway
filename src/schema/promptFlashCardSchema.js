@@ -1,19 +1,21 @@
+import { SchemaType } from "@google/generative-ai";
+
 export const promptFlashCardSchema = {
     description: "List of definitions with terms or an error message if generation fails",
-    type: "object",
+    type: SchemaType.OBJECT,
     properties: {
         definition_and_terms: {
-            type: "array",
+            type: SchemaType.ARRAY,
             items: {
-                type: "object",
+                type: SchemaType.OBJECT,
                 properties: {
                     definition: {
-                        type: "string",
+                        type: SchemaType.STRING,
                         description: "The definition of the term",
                         nullable: true, // Now nullable in case AI cannot generate a response
                     },
                     term: {
-                        type: "string",
+                        type: SchemaType.STRING,
                         description: "The term that the definition pertains to",
                         nullable: true, // Now nullable in case AI cannot generate a response
                     },
@@ -22,7 +24,7 @@ export const promptFlashCardSchema = {
             },
         },
         errorMessage: {
-            type: "string",
+            type: SchemaType.STRING,
             description: "Error message if AI cannot generate a response due to inappropriate content or context",
             nullable: true,
         },

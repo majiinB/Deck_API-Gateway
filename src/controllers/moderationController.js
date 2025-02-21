@@ -17,6 +17,15 @@
  * @updated 2025-02-20
  */
 
+import { geminiModerationService } from '../services/moderationService.js';
 export const geminiModerationController = async (req, res) => {
+    const { deckId } = req.body;
+    const userId = req.param.id;
 
+    if (!deckId.trim()) {
+        return res.status(400).json({ message: 'Subject or topic is required if no file is uploaded.' });
+    }
+
+    const result = await geminiModerationService(deckId, userId);
+    return res.status(200).send(result);
 }

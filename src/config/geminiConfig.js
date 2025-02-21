@@ -86,7 +86,12 @@ const safetySettings = [
  * Instance of the specific generative model (Gemini) used for AI tasks.
  * This model provides flashcard-like generation features.
  */
-export const getModel = (format = null) => {
+export const getModel = (format = null, model = "gemini-1.5-flash") => {
+
+    if (model.trim() === '' || model === null) {
+        model = "gemini-1.5-flash"
+    }
+
     let generationConfig = {
         temperature: 0.8,            // Randomness level for response generation
         topP: 0.95,                  // Nucleus sampling threshold
@@ -109,9 +114,9 @@ export const getModel = (format = null) => {
     }
 
     return genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
+        model: model,
         generationConfig: generationConfig,
-        safetySettings: safetySettings
+        // safetySettings: safetySettings
     });
 }
 
