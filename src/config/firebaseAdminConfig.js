@@ -41,6 +41,8 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 })
 
+export const db = admin.firestore();
+
 /**
  * Middleware to verify Firebase ID token from the request's Authorization header.
  *
@@ -67,3 +69,5 @@ export const verifyFirebaseToken = async (req, res, next) => {
         return res.status(403).json({ error: "Unauthorized: Invalid token: " + error });
     }
 };
+
+

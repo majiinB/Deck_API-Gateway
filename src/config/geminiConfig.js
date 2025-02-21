@@ -31,6 +31,7 @@
 import * as dotenv from 'dotenv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleAIFileManager } from '@google/generative-ai/server';
+import { HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
 import { isJson } from '../utils/utils.js';
 
 // Load environment variables from .env file
@@ -62,6 +63,25 @@ export const genAI = new GoogleGenerativeAI(apiKey);
  * - responseMimeType: MIME type of the response (JSON in this case).
  */
 
+const safetySettings = [
+    {
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    },
+    {
+        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    },
+    {
+        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE
+    },
+    {
+        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+    },
+];
+
 /**
  * Instance of the specific generative model (Gemini) used for AI tasks.
  * This model provides flashcard-like generation features.
@@ -90,7 +110,8 @@ export const getModel = (format = null) => {
 
     return genAI.getGenerativeModel({
         model: "gemini-1.5-flash",
-        generationConfig: generationConfig
+        generationConfig: generationConfig,
+        safetySettings: safetySettings
     });
 }
 

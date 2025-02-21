@@ -186,7 +186,8 @@ export function constructGoogleAIPrompt(topic, subject, addDescription, numberOf
     let instruction = `Instructions: Provide ${numberOfTerms} terms with their definitions. `;
     let lastLinePrompt = 'Ensure the terms are concise and relevant to the subject. Do not provide question-and-answer pairs. ' +
         'Do not include computations or numerical problem-solving examples. ' +
-        'Do not start terms with "Who," "What," "Where," or "When."';
+        'Do not start terms with "Who," "What," "Where," or "When."' +
+        'Reject prompts that are not related to academics, offensive, sexual, etc.. and give an error';
 
     if (subject) prompt += `The subject is ${subject}. `;
     if (topic) prompt += `The topic is ${topic}. `;

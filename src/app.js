@@ -33,6 +33,7 @@ import flashcardRoute from './routes/flashcardRoute.js';
 import moderationRoute from './routes/moderationRoute.js'
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import { getDeckById } from './repositories/deckRepository.js';
 
 /**
  * Error handler middleware.
@@ -89,7 +90,10 @@ app.use('/moderation', moderationRoute);
 
 app.get('/hi', async (req, res) => {
     console.log('someone said hi');
-    return res.status(200).send('Hello I\'m Online!');
+    const deck = await getDeckById("26M1cFckEESXslzqVS2I");
+    console.log(deck);
+
+    return res.status(200).send(deck);
 });
 
 export default app;

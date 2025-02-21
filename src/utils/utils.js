@@ -24,7 +24,7 @@
  * 
  */
 
-import openai from '../config/openaiConfig.js';
+
 import { PDFExtract } from 'pdf.js-extract';
 import fs from 'fs';
 import * as dotenv from 'dotenv';

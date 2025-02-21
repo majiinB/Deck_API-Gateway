@@ -36,6 +36,7 @@
 
 import express from 'express';
 import { verifyFirebaseToken } from '../config/firebaseAdminConfig.js';
+import { geminiModerationController } from '../controllers/moderationController.js';
 
 const router = express.Router();
 
