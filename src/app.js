@@ -30,6 +30,7 @@
 
 import express from 'express';
 import flashcardRoute from './routes/flashcardRoute.js';
+import moderationRoute from './routes/moderationRoute.js'
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 
@@ -84,6 +85,7 @@ app.use(errorHandler);
 
 //END POINTS
 app.use('/flashcard', flashcardRoute);
+app.use('/moderation', moderationRoute);
 
 app.get('/hi', async (req, res) => {
     console.log('someone said hi');
