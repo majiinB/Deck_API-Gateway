@@ -19,6 +19,7 @@
 
 import { getModel, fileManager } from '../config/geminiConfig.js';
 import { promptFlashCardSchema } from '../schema/promptFlashCardSchema.js'
+import { moderatedFlashcardsSchema } from '../schema/flashcardModerationSchema.js';
 
 /**
  * Sends a prompt to the Gemini model, optionally including a PDF file.
@@ -81,8 +82,12 @@ export async function sendPrompt(isTherePdf, prompt, filePath = "", fileExtensio
                     },
                     { text: prompt },
                 ]);
+
+                console.log(JSON.stringify(response, null, 2));
+
             } else {
                 result = await model.generateContent(prompt);
+                console.log(JSON.stringify(result, null, 2));
             }
 
             // Ensure response is valid
@@ -129,7 +134,65 @@ export async function sendPrompt(isTherePdf, prompt, filePath = "", fileExtensio
     }
 }
 
+export async function sendPromptModeration(prompt) {
+    let attempt = 0;
+    const MAX_RETRIES = 3; // Maximum retry attempts
+    const BASE_DELAY = 1000; // Initial delay in ms (1 second)
 
+    while (attempt < MAX_RETRIES) {
+        try {
+            console.log(`Attempt ${attempt + 1} to send prompt...`);
+
+            let result;
+            const model = getModel(moderatedFlashcardsSchema, "gemini-2.0-flash");
+
+            result = await model.generateContent(prompt);
+            console.log(result);
+
+
+            // Ensure response is valid
+            if (!result?.response?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                throw new Error("Invalid response received from the model.");
+            }
+
+            const response = result.response.candidates[0].content.parts[0].text;
+            return {
+                success: true,
+                message: "Prompt was sent successfully",
+                data: JSON.parse(response),
+            };
+
+        } catch (error) {
+            const retryableErrors = ["NetworkError", "TimeoutError", "ServiceUnavailable"];
+            console.error(`Error on attempt ${attempt + 1}: ${error.message}`);
+
+            if (!retryableErrors.includes(error.name)) {
+                console.error("Non-retryable error encountered:", error.message);
+                return {
+                    success: false,
+                    message: error.message,
+                    data: null,
+                };
+            }
+
+            if (attempt === MAX_RETRIES - 1) {
+                console.error("Max retry attempts reached. Returning failure.");
+                return {
+                    success: false,
+                    message: error.message,
+                    data: null,
+                };
+            }
+
+            // Exponential backoff delay
+            const delay = BASE_DELAY * Math.pow(2, attempt); // 1s, 2s, 4s...
+            console.log(`Retrying in ${delay / 1000} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+
+        attempt++; // Increment attempt count
+    }
+}
 
 /**
  * Uploads a file to Gemini and returns the file object.
@@ -186,7 +249,11 @@ export function constructGoogleAIPrompt(topic, subject, addDescription, numberOf
     let instruction = `Instructions: Provide ${numberOfTerms} terms with their definitions. `;
     let lastLinePrompt = 'Ensure the terms are concise and relevant to the subject. Do not provide question-and-answer pairs. ' +
         'Do not include computations or numerical problem-solving examples. ' +
-        'Do not start terms with "Who," "What," "Where," or "When."';
+        'Do not start terms with "Who," "What," "Where," or "When."' +
+        'Reject prompts that are not related to academics, offensive, sexual, etc.. and give an error' +
+        'Expected output format:' +
+        '"terms": [{"term": "Variable","definition": "A symbol, usually a letter, representing an unknown numerical value in an algebraic expression or equation."},' +
+        '{"term": "Equation", "definition": "A mathematical statement asserting the equality of two expressions, typically containing one or more variables."}]';
 
     if (subject) prompt += `The subject is ${subject}. `;
     if (topic) prompt += `The topic is ${topic}. `;

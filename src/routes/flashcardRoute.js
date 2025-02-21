@@ -31,36 +31,14 @@
  * 
  * @author Arthur M. Artugue
  * @created 2024-06-10
- * @updated 2025-02-19
+ * @updated 2025-02-20
  */
 
-
 import express from 'express';
-import { geminiPromptController, openAiPromptController } from '../controllers/promptController.js';
+import { geminiFlashcardController } from '../controllers/flashcardController.js';
 import { verifyFirebaseToken } from '../config/firebaseAdminConfig.js';
 
 const router = express.Router();
-
-
-/**
- * Route: POST /v1/openAI/:id
- * Description: Handles requests to generate flashcard-like questions and answers using OpenAI. 
- * Supports input from PDF files or provided subject, topic, and description.
- * Parameters:
- *   - id: Unique identifier from the request URL
- * Request Body:
- *   - subject: Subject of the questions (optional if PDF is provided)
- *   - topic: Topic of the questions (optional if PDF is provided)
- *   - addDescription: Additional context or description (optional)
- *   - pdfFileName: Name of the uploaded PDF file (optional)
- *   - numberOfQuestions: Number of questions to generate (2-20)
- *   - isNewMessage: Boolean indicating if a new thread should be created
- *   - threadID: Existing thread ID (if not a new message)
- * 
- * OpenAi is disabled
- * router.post('/v1/openAI/:id', openAiPromptController);
- */
-
 
 /**
  * Route: POST /v2/gemini/:id
@@ -76,6 +54,6 @@ const router = express.Router();
  *   - fileExtension: File extension (e.g., pdf, txt)
  *   - numberOfQuestions: Number of questions to generate (2-20)
  */
-router.post('/v2/gemini/:id', geminiPromptController) // put verifyFirebaseToken as second parameter to enable jwt verification
+router.post('/v2/gemini/:id', geminiFlashcardController) // put verifyFirebaseToken as second parameter to enable jwt verification
 
 export default router;
