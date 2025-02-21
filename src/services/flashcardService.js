@@ -15,12 +15,12 @@
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-12
- * @updated 2025-02-20
+ * @updated 2025-02-22
  * 
  */
 
-import { createThread, extractPdfText, deleteFile } from '../utils/utils.js';
-import { sendPrompt, constructGoogleAIPrompt } from './aiService.js';
+import { deleteFile } from '../utils/utils.js';
+import { sendPromptFlashcardGeneration } from './aiService.js';
 import { downloadFile, downloadPdf } from "../repositories/fileRepository.js";
 
 /**
@@ -35,7 +35,7 @@ import { downloadFile, downloadPdf } from "../repositories/fileRepository.js";
 export const geminiFlashcardService = async (request, id) => {
     const { subject, topic, addDescription, fileName, fileExtension, numberOfQuestions } = request.body;
 
-    const prompt = constructGoogleAIPrompt(topic, subject, addDescription, numberOfQuestions);
+    const prompt = constructFlashCardGenerationPrompt(topic, subject, addDescription, numberOfQuestions);
 
     if (fileName?.trim()) {
         if (!fileExtension?.trim()) return { status: 422, message: 'File extension is required.', data: null };
@@ -45,7 +45,7 @@ export const geminiFlashcardService = async (request, id) => {
 
             if (!filePath) return { status: 500, message: 'Error retrieving the file from the server.', data: null };
 
-            const response = await sendPrompt(true, prompt, filePath, fileExtension);
+            const response = await sendPromptFlashcardGeneration(true, prompt, filePath, fileExtension);
 
             return {
                 status: 200,
@@ -65,7 +65,7 @@ export const geminiFlashcardService = async (request, id) => {
         }
     } else {
         try {
-            const response = await sendPrompt(false, prompt);
+            const response = await sendPromptFlashcardGeneration(false, prompt);
             return {
                 status: 200,
                 request_owner_id: id,
@@ -82,4 +82,32 @@ export const geminiFlashcardService = async (request, id) => {
             };
         }
     }
+}
+
+/**
+ * Constructs a JSON prompt for the Google AI model.
+ * 
+ * @param {string} topic - The topic for the questions.
+ * @param {string} subject - The subject area for the questions.
+ * @param {string} addDescription - Additional description for the prompt.
+ * @param {number} numberOfQuestions - Number of questions to generate.
+ * @returns {string} - The constructed JSON prompt.
+ */
+export function constructFlashCardGenerationPrompt(topic, subject, addDescription, numberOfTerms) {
+    let prompt = 'I want you to act as a Professor providing students with terminologies and their definitions. ';
+    let instruction = `Instructions: Provide ${numberOfTerms} terms with their definitions. `;
+    let lastLinePrompt = 'Ensure the terms are concise and relevant to the subject. Do not provide question-and-answer pairs. ' +
+        'Do not include computations or numerical problem-solving examples. ' +
+        'Do not start terms with "Who," "What," "Where," or "When."' +
+        'Reject prompts that are not related to academics, offensive, sexual, etc.. and give an error' +
+        'Expected output format:' +
+        '"terms": [{"term": "Variable","definition": "A symbol, usually a letter, representing an unknown numerical value in an algebraic expression or equation."},' +
+        '{"term": "Equation", "definition": "A mathematical statement asserting the equality of two expressions, typically containing one or more variables."}]';
+
+    if (subject) prompt += `The subject is ${subject}. `;
+    if (topic) prompt += `The topic is ${topic}. `;
+    if (addDescription) prompt += `Additional description: ${addDescription}. `;
+    prompt += instruction + lastLinePrompt;
+
+    return prompt;
 }

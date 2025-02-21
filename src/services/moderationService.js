@@ -2,44 +2,71 @@
  * Deck API - Moderation Service
  *
  * @file moderationService.js
- * @description Provides services for processing AI-generated flashcard prompts.
+ * @description Provides AI-based moderation services for flashcards.
  * 
- * This module interacts with AI models (Gemini and OpenAI) to generate flashcards based on user input.
- * It handles file retrieval, prompt construction, and API communication.
+ * This module interacts with AI models (Gemini) to moderate flashcards 
+ * by checking for inappropriate content.
  * 
  * @module moderationService
  * 
- * @requires ../utils/utils.js
- * @requires ../services/aiService.js
- * @requires ../repositories/fileRepository.js
+ * @requires ../repositories/deckRepository.js - Handles deck data retrieval.
+ * @requires ../services/aiService.js - Handles AI moderation requests.
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-20
- * @updated 2025-02-20
- * 
+ * @updated 2025-02-22
  */
 import { getDeckById } from "../repositories/deckRepository.js";
-import { sendPromptModeration } from "./aiService.js";
-import { moderatedFlashcardsSchema } from "../schema/flashcardModerationSchema.js";
+import { sendPromptModeration } from "../services/aiService.js";
 
+/**
+ * Performs AI-based moderation on a deck's flashcards.
+ *
+ * @async
+ * @function geminiModerationService
+ * @param {string} deckId - The ID of the deck to be moderated.
+ * @param {string} id - A unique identifier for the moderation request.
+ * @returns {Promise<Object>} The moderation results including flagged cards and overall verdict.
+ */
 export const geminiModerationService = async (deckId, id) => {
-
     const aiResponses = [];
-    const deck = await getDeckById(deckId);
-    const deckTermsAndDef = deck.questions;
-    const chunkedQuestions = chunkArray(deckTermsAndDef, 10);
+    try {
+        const deck = await getDeckById(deckId);
+        const deckTermsAndDef = deck.questions;
+        const chunkedQuestions = chunkArray(deckTermsAndDef, 10);
 
-    for (const questionGroup of chunkedQuestions) {
-        let prompt = moderationPrompt(formatPrompt(questionGroup));
-        let response = await sendPromptModeration(prompt);
-        aiResponses.push(response);
+        for (const questionGroup of chunkedQuestions) {
+            let prompt = moderationPrompt(formatPrompt(questionGroup));
+            let response = await sendPromptModeration(prompt);
+            aiResponses.push(response);
+        }
+
+        return {
+            status: 200,
+            request_owner_id: id,
+            message: "Moderation review successful",
+            data: aggregateModerationResults(aiResponses)
+        }
+
+    } catch (error) {
+        return {
+            status: 400,
+            request_owner_id: id,
+            message: "Moderation review failed: " + error.message,
+            data: null
+        }
     }
-    // console.log(JSON.stringify(aiResponses, null, 2));
-    // console.log(aiResponses);
 
-    return aggregateModerationResults(aiResponses);
 }
 
+/**
+ * Splits an array into smaller chunks.
+ *
+ * @function chunkArray
+ * @param {Array} array - The array to be split.
+ * @param {number} chunkSize - The size of each chunk.
+ * @returns {Array[]} An array of chunked arrays.
+ */
 const chunkArray = (array, chunkSize) => {
     const chunks = [];
     for (let i = 0; i < array.length; i += chunkSize) {
@@ -48,10 +75,25 @@ const chunkArray = (array, chunkSize) => {
     return chunks;
 };
 
+/**
+ * Formats a chunk of questions into a prompt-friendly format.
+ *
+ * @function formatPrompt
+ * @param {Array} questionsChunk - The chunk of questions to format.
+ * @returns {string} A formatted string for AI moderation.
+ */
 const formatPrompt = (questionsChunk) => {
     return questionsChunk.map(q => `Description: ${q.question}\nTerm: ${q.answer}`).join("\n\n");
 };
 
+
+/**
+ * Aggregates moderation results from AI responses.
+ *
+ * @function aggregateModerationResults
+ * @param {Array} aiResponses - The AI responses containing moderation decisions.
+ * @returns {Object} Aggregated moderation results.
+ */
 const aggregateModerationResults = (aiResponses) => {
     let isAppropriate = true;
     let inappropriateItems = [];
@@ -76,6 +118,13 @@ const aggregateModerationResults = (aiResponses) => {
 };
 
 
+/**
+ * Generates a moderation prompt for the AI.
+ *
+ * @function moderationPrompt
+ * @param {string} questionsChunk - A formatted chunk of questions.
+ * @returns {string} A structured prompt for AI moderation.
+ */
 const moderationPrompt = (questionsChunk) => {
     const prompt = `You are an AI content moderator. Your task is to review the following description and terms to 
                     determine if any content is inappropriate.

@@ -2,36 +2,24 @@
  * Deck API - Moderation Router
  *
  * @file moderationRoute.js
- * @description This module defines the routes for the Deck API, which interacts with OpenAI and Gemini services 
- * to generate AI-based questions, flashcards, and responses. It handles PDF downloads, text extraction, 
- * and prompt construction for various scenarios.
+ * @description This module defines the routes for the Deck API, which interacts Gemini services 
+ * to do AI-based moderation on flashcards. 
  *
  * Routes:
- * - /v1/openAI/:id: Handles AI prompt-related requests using OpenAI, with optional PDF input for content generation.
- * - /v2/gemini/:id: Handles requests through Gemini for generating content and flashcards with or without file input.
+ * - /v2/gemini/:id: Handles requests through Gemini for doing AI-based deck content moderation.
  *
  * Middleware:
  * - express.json(): Parses incoming request bodies in JSON format.
  *
  * External Dependencies:
- * - openai: Configured OpenAI instance for interacting with the OpenAI API.
- * - firebase: Firebase App initialization for configuration management.
- * - Utility functions: Includes helper functions like PDF download, extraction, and validation checks.
- *
- * Functions:
- * - createThread: Creates or retrieves a thread for OpenAI-based prompts.
- * - downloadPdf, extractPdfText, deleteFile: Handle PDF operations.
- * - isValidInteger: Validates if the input is a valid integer.
- * - constructGoogleAIPrompt, sendPrompt: Gemini-related prompt handling.
- *
- * Server:
- * - These routes are part of the Express application and integrate with the main server.
- *
+ * - Gemini: Configured Gemini instance for interacting with the Google Gemini API.
+ * - Firebase: Firebase App initialization for configuration management.
+ * 
  * @module router
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-20
- * @updated 2025-02-20
+ * @updated 2025-02-22
  */
 
 import express from 'express';
