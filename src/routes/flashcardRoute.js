@@ -41,7 +41,7 @@ import { verifyFirebaseToken } from '../config/firebaseAdminConfig.js';
 const router = express.Router();
 
 /**
- * Route: POST /v2/gemini/:id
+ * Route: POST /generate/:id
  * Description: Handles requests to generate questions using Google AI prompt construction. 
  * Supports both file-based and manual input.
  * Parameters:
@@ -54,6 +54,6 @@ const router = express.Router();
  *   - fileExtension: File extension (e.g., pdf, txt)
  *   - numberOfQuestions: Number of questions to generate (2-20)
  */
-router.post('/generate/:id', geminiFlashcardController) // put verifyFirebaseToken as second parameter to enable jwt verification
+router.post('/generate/:id', verifyFirebaseToken, geminiFlashcardController) // put verifyFirebaseToken as second parameter to enable jwt verification
 
 export default router;

@@ -29,19 +29,14 @@ import { geminiModerationController } from '../controllers/moderationController.
 const router = express.Router();
 
 /**
- * Route: POST /v2/gemini/:id
+ * Route: POST /moderate/:id
  * Description: Handles requests to generate questions using Google AI prompt construction. 
  * Supports both file-based and manual input.
  * Parameters:
  *   - id: Unique identifier from the request URL
  * Request Body:
- *   - subject: Subject of the questions (optional if file is provided)
- *   - topic: Topic of the questions (optional if file is provided)
- *   - addDescription: Additional context or description (optional)
- *   - fileName: Name of the uploaded file (optional)
- *   - fileExtension: File extension (e.g., pdf, txt)
- *   - numberOfQuestions: Number of questions to generate (2-20)
+ *   - deckId: The UID of a deck in the database that will be checked or moderated
  */
-router.post('/moderate/:id', geminiModerationController) // put verifyFirebaseToken as second parameter to enable jwt verification
+router.post('/moderate/:id', verifyFirebaseToken, geminiModerationController) // put verifyFirebaseToken as second parameter to enable jwt verification
 
 export default router;

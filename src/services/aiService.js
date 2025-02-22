@@ -20,7 +20,7 @@
 import { getModel, fileManager } from '../config/geminiConfig.js';
 import { promptFlashCardSchema } from '../schema/promptFlashCardSchema.js'
 import { moderatedFlashcardsSchema } from '../schema/flashcardModerationSchema.js';
-import { Threads } from 'openai/resources/beta/index.mjs';
+// import { Threads } from 'openai/resources/beta/index.mjs';
 
 /**
  * Sends a prompt to the Gemini model, optionally including a PDF file.
