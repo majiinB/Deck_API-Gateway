@@ -42,6 +42,6 @@ const router = express.Router();
  *   - fileExtension: File extension (e.g., pdf, txt)
  *   - numberOfQuestions: Number of questions to generate (2-20)
  */
-router.post('/v2/gemini/:id', geminiModerationController) // put verifyFirebaseToken as second parameter to enable jwt verification
+router.post('/moderate/:id', geminiModerationController) // put verifyFirebaseToken as second parameter to enable jwt verification
 
 export default router;

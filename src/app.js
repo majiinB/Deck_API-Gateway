@@ -85,8 +85,8 @@ app.use(express.json());
 app.use(errorHandler);
 
 //END POINTS
-app.use('/flashcard', flashcardRoute);
-app.use('/moderation', moderationRoute);
+app.use('/v2/deck', flashcardRoute);
+app.use('/v2/deck', moderationRoute);
 
 app.get('/hi', async (req, res) => {
     console.log('someone said hi');
