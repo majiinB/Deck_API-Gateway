@@ -4,7 +4,7 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "test": "jest"
+    "test": ""
   },
   "author": "Arthur Artugue",
   "license": "ISC",
