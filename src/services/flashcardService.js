@@ -101,7 +101,7 @@ export function constructFlashCardGenerationPrompt(topic, subject, addDescriptio
         'Do not start terms with "Who," "What," "Where," or "When."' +
         'Reject prompts that are not related to academics, offensive, sexual, etc.. and give an error' +
         'Expected output format:' +
-        '"terms": [{"term": "Variable","definition": "A symbol, usually a letter, representing an unknown numerical value in an algebraic expression or equation."},' +
+        '"terms_and_definition": [{"term": "Variable","definition": "A symbol, usually a letter, representing an unknown numerical value in an algebraic expression or equation."},' +
         '{"term": "Equation", "definition": "A mathematical statement asserting the equality of two expressions, typically containing one or more variables."}]';
 
     if (subject) prompt += `The subject is ${subject}. `;

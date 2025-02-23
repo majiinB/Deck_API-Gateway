@@ -46,7 +46,7 @@ import { getDeckById } from './repositories/deckRepository.js';
  */
 function errorHandler(err, req, res, next) {
     if (err.message === 'Not allowed by CORS') {
-        return res.status(403).json({ error: 'CORS policy blocked this request' });
+        return res.status(403).json({ message: 'CORS policy blocked this request' });
     } else {
         res.status(422).json({
             error: 'Unprocessable Entity, check your request data'
@@ -56,9 +56,9 @@ function errorHandler(err, req, res, next) {
 
 const corsOptions = {
     origin: (origin, callback) => {
-        // console.log(`CORS Request from: ${origin || 'No Origin'}`); for debugging 
+        console.log(`CORS Request from: ${origin}`);
         const allowedOrigins = ['https://frontend.com'];
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (origin || allowedOrigins.includes(origin)) {
             callback(null, true); // Allow request
         } else {
             callback(new Error('Not allowed by CORS'));
@@ -68,8 +68,8 @@ const corsOptions = {
 
 const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
-    max: 7, // Limit each IP to 100 requests per windowMs
-    message: { error: "Too many requests, please try again later." },
+    max: 7, // Limit each IP to n requests per windowMs
+    message: { message: "Too many requests, please try again later." },
     headers: true, // Send `X-RateLimit-*` headers
 });
 
