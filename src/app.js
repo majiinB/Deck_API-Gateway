@@ -58,7 +58,7 @@ const corsOptions = {
     origin: (origin, callback) => {
         console.log(`CORS Request from: ${origin}`);
         const allowedOrigins = ['https://frontend.com'];
-        if (origin || allowedOrigins.includes(origin)) {
+        if (origin && allowedOrigins.includes(origin)) {
             callback(null, true); // Allow request
         } else {
             callback(new Error('Not allowed by CORS'));
@@ -68,7 +68,7 @@ const corsOptions = {
 
 const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
-    max: 20, // Limit each IP to n requests per windowMs
+    max: 10, // Limit each IP to n requests per windowMs
     message: { message: "Too many requests, please try again later." },
     headers: true, // Send `X-RateLimit-*` headers
 });
