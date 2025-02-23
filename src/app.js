@@ -88,12 +88,9 @@ app.use(errorHandler);
 app.use('/v2/deck', flashcardRoute);
 app.use('/v2/deck', moderationRoute);
 
-app.get('/hi', async (req, res) => {
+app.get('/v2/deck/hi', async (req, res) => {
     console.log('someone said hi');
-    const deck = await getDeckById("26M1cFckEESXslzqVS2I");
-    console.log(deck);
-
-    return res.status(200).send(deck);
+    return res.status(200).json({ message: 'Hi! the server is active' });
 });
 
 export default app;
