@@ -30,6 +30,10 @@ import { sendPromptModeration } from "../services/aiService.js";
  */
 export const geminiModerationService = async (deckId, id) => {
     const aiResponses = [];
+    let statusCode = 200;
+    let data = null;
+    let message = "Moderation review successful";
+
     try {
         const deck = await getDeckById(deckId);
         const deckTermsAndDef = deck.questions;
@@ -41,20 +45,23 @@ export const geminiModerationService = async (deckId, id) => {
             aiResponses.push(response);
         }
 
-        return {
-            status: 200,
-            request_owner_id: id,
-            message: "Moderation review successful",
-            data: aggregateModerationResults(aiResponses)
-        }
+        statusCode = 200;
+        data = aggregateModerationResults(aiResponses);
 
     } catch (error) {
-        return {
-            status: 400,
-            request_owner_id: id,
-            message: "Moderation review failed: " + error.message,
-            data: null
-        }
+        message = "Moderation review failed: " + error.message
+        data = null;
+
+        if (error.message == "Deck not found") { statusCode = 404; }
+        else if (error.message == "Deck has no valid questions") { statusCode = 404; }
+        else { statusCode = 500; }
+    }
+
+    return {
+        status: statusCode,
+        request_owner_id: id,
+        message: message,
+        data: data
     }
 
 }

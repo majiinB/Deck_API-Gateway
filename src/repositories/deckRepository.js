@@ -30,24 +30,18 @@ import { formatDeck } from '../models/deckModel.js';
  * @throws {Error} - Throws an error if the deck ID is invalid, not found, or has no valid questions.
  */
 export const getDeckById = async (deckId) => {
-    try {
-        if (!deckId) throw new Error("Invalid deck ID");
 
-        const deckRef = db.collection("decks").doc(deckId);
-        const deckSnap = await deckRef.get();
+    const deckRef = db.collection("decks").doc(deckId);
+    const deckSnap = await deckRef.get();
 
-        if (!deckSnap.exists) throw new Error("Deck not found");
+    if (!deckSnap.exists) throw new Error("Deck not found");
 
-        const questionSnap = await deckRef.collection("questions").where("is_deleted", "==", false).get();
-        const questions = questionSnap?.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || [];
+    const questionSnap = await deckRef.collection("questions").where("is_deleted", "==", false).get();
+    const questions = questionSnap?.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || [];
 
-        if (questions.length === 0) throw new Error("Deck has no valid questions");
+    if (questions.length === 0) throw new Error("Deck has no valid questions");
 
-        const deckData = deckSnap.data();
+    const deckData = deckSnap.data();
 
-        return formatDeck(deckSnap.id, deckData, questions);
-    } catch (error) {
-        console.error('Error fetching deck: ', error.message);
-        throw new Error(`Failed to fetch deck: ${error.message}`);
-    }
+    return formatDeck(deckSnap.id, deckData, questions);
 };

@@ -22,14 +22,30 @@ export const geminiModerationController = async (req, res) => {
     const { deckId } = req.body;
     const userId = req.params.id;
 
-    if (!deckId.trim()) {
-        return res.status(400).json({ message: 'Subject or topic is required if no file is uploaded.' });
+    if (!deckId || !deckId.trim()) {
+        return res.status(400).json(
+            {
+                status: 400,
+                request_owner_id: userId,
+                message: "The parameter 'deckId' can't be empty or null",
+                data: null
+            }
+        );
     }
 
-    const result = await geminiModerationService(deckId, userId);
+    try {
+        const result = await geminiModerationService(deckId, userId);
 
-    if (result.data == null) {
-        return res.status(400).send(result);
+        return res.status(result.status).send(result);
+    } catch (error) {
+        console.error("Unexpected error in moderation:", error);
+        return res.status(500).json(
+            {
+                status: 400,
+                request_owner_id: userId,
+                message: "An unexpected error occurred during moderation.",
+                data: null
+            }
+        );
     }
-    return res.status(200).send(result);
 }
