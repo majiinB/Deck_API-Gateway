@@ -31,6 +31,7 @@
 import express from 'express';
 import flashcardRoute from './routes/flashcardRoute.js';
 import moderationRoute from './routes/moderationRoute.js'
+import quizRoute from './routes/quizRoute.js'
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { getDeckById } from './repositories/deckRepository.js';
@@ -85,8 +86,10 @@ app.use(express.json());
 app.use(errorHandler);
 
 //END POINTS
-app.use('/v2/deck', flashcardRoute);
-app.use('/v2/deck', moderationRoute);
+app.use('/v2/deck/generate', flashcardRoute);
+app.use('/v2/deck/moderate', moderationRoute);
+app.use('/v2/deck/generate/quiz', quizRoute );
+
 
 app.get('/v2/deck/hi', async (req, res) => {
     console.log('someone said hi');
