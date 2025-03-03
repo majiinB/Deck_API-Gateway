@@ -230,3 +230,13 @@ export async function waitForFilesActive(files) {
     }
     console.log("...all files ready\n");
 }
+
+export async function countToken(model, content){
+    try {
+        const model = getModel(null, model);
+        return await model.countTokens(content);
+    } catch (error) {
+        console.error(`Error counting tokens: ${error.message}`);
+        return 0;
+    }
+}
