@@ -17,7 +17,7 @@
  * @updated 2025-02-22
  */
 import { getDeckById } from "../repositories/deckRepository.js";
-import { sendPromptModeration, countToken, sendPromptModerationInline
+import { sendPromptModeration, countToken, sendPromptInline
 
  } from "../services/aiService.js";
 
@@ -43,7 +43,7 @@ export const geminiModerationService = async (deckId, id) => {
 
         const deckData = formatPrompt(deckTermsAndDef);
         const prompt = moderationPrompt();
-        const result = await sendPromptModerationInline(prompt,deckData);
+        const result = await sendPromptInline(prompt,deckData);
         statusCode = 200;
         data = result;
 
@@ -131,9 +131,11 @@ const aggregateModerationResults = (aiResponses) => {
     }
 
     return {
-        is_appropriate: isAppropriate,
-        moderation_decision: moderationDecision,
-        flagged_cards: inappropriateItems // Ensures it always returns an array
+        overall_verdict:{
+            is_appropriate: isAppropriate,
+            moderation_decision: moderationDecision,
+            flagged_cards: inappropriateItems // Ensures it always returns an array
+        }
     };
 };
 
