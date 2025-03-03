@@ -17,7 +17,8 @@
  * @updated 2025-02-22
  */
 import { getDeckById } from "../repositories/deckRepository.js";
-import { sendPromptModeration } from "../services/aiService.js";
+import { sendPromptInline } from "../services/aiService.js";
+import { quizSchema } from "../schema/quizSchema.js";
 
 /**
  * Performs AI-based moderation on a deck's flashcards.
@@ -30,6 +31,7 @@ import { sendPromptModeration } from "../services/aiService.js";
  */
 export const geminiQuizService = async (deckId, id) => {
     const aiResponses = [];
+    let tokenCount = 0;
     let statusCode = 200;
     let data = null;
     let message = "Moderation review successful";
@@ -37,16 +39,12 @@ export const geminiQuizService = async (deckId, id) => {
     try {
         const deck = await getDeckById(deckId);
         const deckTermsAndDef = deck.questions;
-        const chunkedQuestions = chunkArray(deckTermsAndDef, 10);
 
-        for (const questionGroup of chunkedQuestions) {
-            let prompt = moderationPrompt(formatPrompt(questionGroup));
-            let response = await sendPromptModeration(prompt);
-            aiResponses.push(response);
-        }
-
+        const deckData = formatPrompt(deckTermsAndDef);
+        const prompt = quizPrompt(5);
+        const result = await sendPromptInline(quizSchema, prompt, deckData);
         statusCode = 200;
-        data = aggregateModerationResults(aiResponses);
+        data = result;
 
     } catch (error) {
         message = "Moderation review failed: " + error.message
@@ -74,13 +72,6 @@ export const geminiQuizService = async (deckId, id) => {
  * @param {number} chunkSize - The size of each chunk.
  * @returns {Array[]} An array of chunked arrays.
  */
-const chunkArray = (array, chunkSize) => {
-    const chunks = [];
-    for (let i = 0; i < array.length; i += chunkSize) {
-        chunks.push(array.slice(i, i + chunkSize));
-    }
-    return chunks;
-};
 
 /**
  * Formats a chunk of questions into a prompt-friendly format.
@@ -90,40 +81,8 @@ const chunkArray = (array, chunkSize) => {
  * @returns {string} A formatted string for AI moderation.
  */
 const formatPrompt = (questionsChunk) => {
-    return questionsChunk.map(q => `Description: ${q.question}\nTerm: ${q.answer}`).join("\n\n");
+    return questionsChunk.map(q => `ID: ${q.id}\nDescription: ${q.question}\nTerm: ${q.answer}`).join("\n\n");
 };
-
-
-/**
- * Aggregates moderation results from AI responses.
- *
- * @function aggregateModerationResults
- * @param {Array} aiResponses - The AI responses containing moderation decisions.
- * @returns {Object} Aggregated moderation results.
- */
-const aggregateModerationResults = (aiResponses) => {
-    let isAppropriate = true;
-    let inappropriateItems = [];
-    let moderationDecision = 'Content is appropriate';
-
-    for (const response of aiResponses) {
-        if (!response.data.overall_verdict.is_appropriate) {
-            isAppropriate = false;
-            moderationDecision = response.data.overall_verdict.moderation_decision;
-            // Ensure flagged_cards exists and is an array before concatenation
-            if (Array.isArray(response.data.overall_verdict.flagged_cards) && response.data.overall_verdict.flagged_cards.length > 0) {
-                inappropriateItems = inappropriateItems.concat(response.data.overall_verdict.flagged_cards);
-            }
-        }
-    }
-
-    return {
-        is_appropriate: isAppropriate,
-        moderation_decision: moderationDecision,
-        flagged_cards: inappropriateItems // Ensures it always returns an array
-    };
-};
-
 
 /**
  * Generates a moderation prompt for the AI.
@@ -132,44 +91,49 @@ const aggregateModerationResults = (aiResponses) => {
  * @param {string} questionsChunk - A formatted chunk of questions.
  * @returns {string} A structured prompt for AI moderation.
  */
-const moderationPrompt = (questionsChunk) => {
-    const prompt = `You are an AI content moderator. Your task is to review the following description and terms to 
-                    determine if any content is inappropriate.
+const quizPrompt = (number) => {
+    const prompt = `You are an expert quiz generator. Based on the provided flashcards, create a well-balanced multiple-choice quiz.
+                    Each question should assess understanding of the terms and definitions given. Ensure the following:
 
-                    ### Inappropriate content includes:
-                    - Hate speech, discrimination, or offensive language.
-                    - Sexual, violent, or disturbing content.
-                    - Misinformation or misleading facts.
-                    - Any content that is harmful, unethical, or violates academic integrity.
+                    - The questions must be clear, relevant, and derived from the flashcard content.
+                    - Each question must have four answer choices, with only one correct answer.
+                    - Distractor choices should be plausible but incorrect.
+                    - Avoid repeating the exact wording of the term/definition; instead, rephrase to encourage critical thinking.
+                    - Ensure a mix of direct recall, application-based, and conceptual questions.
+                    - If the flashcard set is too small to generate a full quiz, return an error message instead.
 
                     ### Instructions:
                     1. Review each description-term pair.
-                    2. Identify any inappropriate content based on the given criteria.
-                    3. Return your moderation decision accordingly and STRICTLY FOLLOW THE FORMAT.
+                    2. Think of ${number} question and their corresponding choices.
+                    3. Return your the quiz in the expected format and STRICTLY FOLLOW THE FORMAT.
 
                     ## Expected sample output format ##
                     Example 1:
-                    overall_verdict{
-                        is_appropriate: true,
-                        moderation_decision: "content is appropriate",
-                        flagged_cards: [] //empty because the overall decision is appropriate
-                    }
-
-                    Example 2:
-                    overall_verdict{
-                        is_appropriate: false,
-                        moderation_decision: "content is inappropriate",
-                        flagged_cards: [
+                    {
+                        "quiz": [
                             {
-                                description: "Inappropriate description from flashcard",
-                                term: "Inappropriate term of flashcard,
-                                reason: "Reason for why is it inappropriate and became flagged"
+                                "question": "Which process allows plants to convert sunlight into energy?",
+                                "related_flashcard_id": "HTALJDF134",
+                                "choices": [
+                                    { "text": "Photosynthesis", "is_correct": true },
+                                    { "text": "Respiration", "is_correct": false },
+                                    { "text": "Fermentation", "is_correct": false },
+                                    { "text": "Transpiration", "is_correct": false }
+                                ]
+                            },
+                            {
+                                "question": "What is the primary result of mitosis?",
+                                "related_flashcard_id": "LKNDALFK923",
+                                "choices": [
+                                    { "text": "Two identical daughter cells", "is_correct": true },
+                                    { "text": "Four genetically unique cells", "is_correct": false },
+                                    { "text": "A single large cell", "is_correct": false },
+                                    { "text": "Cell death", "is_correct": false }
+                                ]
                             }
-                        ] 
+                        ],
+                        "errorMessage": null
                     }
-
-                    ### Content to Moderate:
-                    ${questionsChunk}
         `;
     return prompt;
 }

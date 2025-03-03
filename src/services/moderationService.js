@@ -17,9 +17,8 @@
  * @updated 2025-02-22
  */
 import { getDeckById } from "../repositories/deckRepository.js";
-import { sendPromptModeration, countToken, sendPromptInline
-
- } from "../services/aiService.js";
+import { sendPromptModeration, countToken, sendPromptInline} from "../services/aiService.js";
+import { moderatedFlashcardsSchema } from '../schema/flashcardModerationSchema.js';
 
 /**
  * Performs AI-based moderation on a deck's flashcards.
@@ -43,7 +42,7 @@ export const geminiModerationService = async (deckId, id) => {
 
         const deckData = formatPrompt(deckTermsAndDef);
         const prompt = moderationPrompt();
-        const result = await sendPromptInline(prompt,deckData);
+        const result = await sendPromptInline(moderatedFlashcardsSchema, prompt,deckData);
         statusCode = 200;
         data = result;
 

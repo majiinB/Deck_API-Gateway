@@ -1,16 +1,18 @@
 import { SchemaType } from "@google/generative-ai";
 
-export const promptFlashCardChoicesSchema = {
+export const quizSchema = {
     description: "A multiple-choice question with related flashcard ID and answer choices",
     type: SchemaType.OBJECT,
     properties: {
         question: {
             type: SchemaType.STRING,
             description: "The multiple-choice question",
+            nullable: true, 
         },
         related_flashcard_id: {
             type: SchemaType.STRING,
             description: "The ID of the related flashcard where the question and answer is based from. Can be only one ID",
+            nullable: true, 
         },
         choices: {
             type: SchemaType.ARRAY,
@@ -29,7 +31,13 @@ export const promptFlashCardChoicesSchema = {
                 },
                 required: ["text", "is_correct"],
             },
+            nullable: true, 
+        },
+        errorMessage: {
+            type: SchemaType.STRING,
+            description: "Error message if the quiz question cannot be generated",
+            nullable: true, // Nullable for successful quiz generation
         },
     },
-    required: ["question", "related_flashcard_id", "choices"],
+    required: [],
 };
