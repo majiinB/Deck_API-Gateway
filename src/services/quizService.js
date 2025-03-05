@@ -19,6 +19,8 @@
 import { getDeckById } from "../repositories/deckRepository.js";
 import { sendPromptInline } from "../services/aiService.js";
 import { quizSchema } from "../schema/quizSchema.js";
+import { createQuizForDeck, createQuestionAndAnswer } from "../repositories/quizRepository.js";
+import { timeStamp } from "../config/firebaseAdminConfig.js";
 
 /**
  * Performs AI-based moderation on a deck's flashcards.
@@ -34,7 +36,7 @@ export const geminiQuizService = async (deckId, id) => {
     let tokenCount = 0;
     let statusCode = 200;
     let data = null;
-    let message = "Moderation review successful";
+    let message = `Quiz creation for deck with id:${deckId} is successful`;
 
     try {
         const deck = await getDeckById(deckId);
@@ -43,11 +45,23 @@ export const geminiQuizService = async (deckId, id) => {
         const deckData = formatPrompt(deckTermsAndDef);
         const prompt = quizPrompt(5);
         const result = await sendPromptInline(quizSchema, prompt, deckData);
+        
+        const questionAndAnswer = result.quiz_data.quiz;
+
+        const quizId = await createQuizForDeck({
+            associated_deck_id: deckId,
+            created_at: timeStamp,
+            is_deleted: false,
+            quiz_type: "multiple-choice",
+        });
+
+        await createQuestionAndAnswer(quizId, questionAndAnswer);
+
         statusCode = 200;
-        data = result;
+        data = {quizId: quizId}
 
     } catch (error) {
-        message = "Moderation review failed: " + error.message
+        message = "Quiz creation failed: " + error.message
         data = null;
 
         if (error.message == "Deck not found") { statusCode = 404; }
@@ -93,54 +107,52 @@ const formatPrompt = (questionsChunk) => {
  */
 const quizPrompt = (number) => {
     const prompt = `You are an expert quiz generator. Based on the provided flashcards, create a well-balanced multiple-choice quiz. 
-                    Each question should assess understanding of the terms and definitions given. Follow these strict requirements:
+    Each question should assess understanding of the terms and definitions given. Follow these strict requirements:
 
-                    - Number of Questions: Generate exactly ${number} questions. Do not return more or fewer.
-                    - Question Quality: Each question must be clear, relevant, and derived from the flashcard content.
-                    - Rephrasing Requirement: Avoid copying the exact wording from the flashcard. Instead, rephrase to encourage critical thinking.
-                    - Answer Choices: Each question must have four answer choices, with only one correct answer.
-                    - Plausible Distractors: The incorrect choices (distractors) should be plausible but incorrect.c
-                    - Question Types: Ensure a mix of:
-                        - Direct recall questions
-                        - Application-based questions
-                        - Conceptual questions
-                        - Numerical problem-solving questions
-                    - Error Handling: If the flashcard set is too small to generate the required number of questions, 
-                      return the following error message instead of an incomplete quiz:
-                      { "quiz": [], "errorMessage": "Insufficient flashcards to generate ${number} questions." }
+    - Number of Questions: Generate exactly ${number} questions. Do not return more or fewer.
+    - Question Quality: Each question must be clear, relevant, and derived from the flashcard content.
+    - Rephrasing Requirement: Avoid copying the exact wording from the flashcard. Instead, rephrase to encourage critical thinking.
+    - Answer Choices: Each question must have four answer choices, with only one correct answer.
+    - Plausible Distractors: The incorrect choices (distractors) should be plausible but incorrect.c
+    - Question Types: Ensure a mix of:
+        - Direct recall questions
+        - Application-based questions
+        - Conceptual questions
+    - Error Handling: If the flashcard set is too small to generate the required number of questions, 
+        return the following error message instead of an incomplete quiz:
+        { "quiz": [], "errorMessage": "Insufficient flashcards to generate ${number} questions." }
 
-                    ### Instructions for Generating the Quiz:
-                    1. Analyze the provided description-term pairs
-                    2. Generate exactly ${number} well-structured questions.
-                    3. Strictly follow the expected output format below.
+    ### Instructions for Generating the Quiz:
+    1. Analyze the provided description-term pairs
+    2. Generate exactly ${number} well-structured questions.
+    3. Strictly follow the expected output format below.
 
-                    ## Expected sample output format ##
-                    Example 1:
-                    {
-                        "quiz": [
-                            {
-                                "question": "Which process allows plants to convert sunlight into energy?",
-                                "related_flashcard_id": "HTALJDF134",
-                                "choices": [
-                                    { "text": "Photosynthesis", "is_correct": true },
-                                    { "text": "Respiration", "is_correct": false },
-                                    { "text": "Fermentation", "is_correct": false },
-                                    { "text": "Transpiration", "is_correct": false }
-                                ]
-                            },
-                            {
-                                "question": "What is the primary result of mitosis?",
-                                "related_flashcard_id": "LKNDALFK923",
-                                "choices": [
-                                    { "text": "Two identical daughter cells", "is_correct": true },
-                                    { "text": "Four genetically unique cells", "is_correct": false },
-                                    { "text": "A single large cell", "is_correct": false },
-                                    { "text": "Cell death", "is_correct": false }
-                                ]
-                            }
-                        ],
-                        "errorMessage": null
-                    }
-        `;
+    ## Expected sample output format ##
+    Example 1:
+    {
+        "quiz": [
+            {
+                "question": "Which process allows plants to convert sunlight into energy?",
+                "related_flashcard_id": "HTALJDF134",
+                "choices": [
+                    { "text": "Photosynthesis", "is_correct": true },
+                    { "text": "Respiration", "is_correct": false },
+                    { "text": "Fermentation", "is_correct": false },
+                    { "text": "Transpiration", "is_correct": false }
+                ]
+            },
+            {
+                "question": "What is the primary result of mitosis?",
+                "related_flashcard_id": "LKNDALFK923",
+                "choices": [
+                    { "text": "Two identical daughter cells", "is_correct": true },
+                    { "text": "Four genetically unique cells", "is_correct": false },
+                    { "text": "A single large cell", "is_correct": false },
+                    { "text": "Cell death", "is_correct": false }
+                ]
+            }
+        ],
+        "errorMessage": null
+    }`;
     return prompt;
 }

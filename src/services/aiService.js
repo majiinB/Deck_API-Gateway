@@ -201,7 +201,7 @@ export async function sendPromptInline(schema, prompt, data) {
 
     while (attempt < MAX_RETRIES) {
         try {
-            console.log(`Attempt ${attempt + 1} to send prompt for moderation...`);
+            console.log(`Attempt ${attempt + 1} to send inline prompt...`);
 
             let result;
             const model = getModel(schema, "gemini-2.0-flash");
@@ -227,7 +227,7 @@ export async function sendPromptInline(schema, prompt, data) {
                 }
             }
             const count = await countToken(null, [prompt, inlineData]);
-            console.log(count);
+            console.log(`Request token count is: ${count}`);
             
             // Ensure response is valid
             if (!result?.response?.candidates?.[0]?.content?.parts?.[0]?.text) {
@@ -236,7 +236,7 @@ export async function sendPromptInline(schema, prompt, data) {
 
             const response = result.response.candidates[0].content.parts[0].text;
             return {
-                data: JSON.parse(response),
+                quiz_data: JSON.parse(response),
             };
 
         } catch (error) {
