@@ -83,15 +83,6 @@ export const geminiQuizService = async (deckId, id) => {
 }
 
 /**
- * Splits an array into smaller chunks.
- *
- * @function chunkArray
- * @param {Array} array - The array to be split.
- * @param {number} chunkSize - The size of each chunk.
- * @returns {Array[]} An array of chunked arrays.
- */
-
-/**
  * Formats a chunk of questions into a prompt-friendly format.
  *
  * @function formatPrompt
