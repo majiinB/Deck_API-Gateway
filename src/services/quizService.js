@@ -92,20 +92,27 @@ const formatPrompt = (questionsChunk) => {
  * @returns {string} A structured prompt for AI moderation.
  */
 const quizPrompt = (number) => {
-    const prompt = `You are an expert quiz generator. Based on the provided flashcards, create a well-balanced multiple-choice quiz.
-                    Each question should assess understanding of the terms and definitions given. Ensure the following:
+    const prompt = `You are an expert quiz generator. Based on the provided flashcards, create a well-balanced multiple-choice quiz. 
+                    Each question should assess understanding of the terms and definitions given. Follow these strict requirements:
 
-                    - The questions must be clear, relevant, and derived from the flashcard content.
-                    - Each question must have four answer choices, with only one correct answer.
-                    - Distractor choices should be plausible but incorrect.
-                    - Avoid repeating the exact wording of the term/definition; instead, rephrase to encourage critical thinking.
-                    - Ensure a mix of direct recall, application-based, and conceptual questions.
-                    - If the flashcard set is too small to generate a full quiz, return an error message instead.
+                    - Number of Questions: Generate exactly ${number} questions. Do not return more or fewer.
+                    - Question Quality: Each question must be clear, relevant, and derived from the flashcard content.
+                    - Rephrasing Requirement: Avoid copying the exact wording from the flashcard. Instead, rephrase to encourage critical thinking.
+                    - Answer Choices: Each question must have four answer choices, with only one correct answer.
+                    - Plausible Distractors: The incorrect choices (distractors) should be plausible but incorrect.c
+                    - Question Types: Ensure a mix of:
+                        - Direct recall questions
+                        - Application-based questions
+                        - Conceptual questions
+                        - Numerical problem-solving questions
+                    - Error Handling: If the flashcard set is too small to generate the required number of questions, 
+                      return the following error message instead of an incomplete quiz:
+                      { "quiz": [], "errorMessage": "Insufficient flashcards to generate ${number} questions." }
 
-                    ### Instructions:
-                    1. Review each description-term pair.
-                    2. Think of ${number} question and their corresponding choices.
-                    3. Return your the quiz in the expected format and STRICTLY FOLLOW THE FORMAT.
+                    ### Instructions for Generating the Quiz:
+                    1. Analyze the provided description-term pairs
+                    2. Generate exactly ${number} well-structured questions.
+                    3. Strictly follow the expected output format below.
 
                     ## Expected sample output format ##
                     Example 1:
