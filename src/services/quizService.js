@@ -38,6 +38,10 @@ export const geminiQuizService = async (deckId, id) => {
     let data = null;
     let message = `Quiz creation for deck with id:${deckId} is successful`;
 
+    /* TODO: Check if the deck has already an existing quiz. If not, create a new one.*/
+    /* TODO: If the deck already has a quiz then check if there are new flashcards */
+    /* TODO: If there are new flashcards make a quiz for it and then push it to the already existing quiz collection */ 
+    
     try {
         const deck = await getDeckById(deckId);
         const deckTermsAndDef = deck.questions;
