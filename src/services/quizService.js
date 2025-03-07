@@ -23,13 +23,14 @@ import { createQuizForDeck, createQuestionAndAnswer, getQuizByDeckIDAndQuizType 
 import { timeStamp } from "../config/firebaseAdminConfig.js";
 
 /**
- * Performs AI-based moderation on a deck's flashcards.
+ * Generates a quiz for a given deck by checking existing quizzes and using AI to generate new questions if needed.
  *
  * @async
- * @function geminiModerationService
- * @param {string} deckId - The ID of the deck to be moderated.
- * @param {string} id - A unique identifier for the moderation request.
- * @returns {Promise<Object>} The moderation results including flagged cards and overall verdict.
+ * @function geminiQuizService
+ * @param {string} deckId - The unique identifier of the deck.
+ * @param {string} id - The ID of the request owner.
+ * @returns {Promise<Object>} - Returns an object containing the quiz ID or a message indicating quiz creation status.
+ * @throws {Error} - Throws an error if the deck is invalid, AI response fails, or Firestore operations encounter an issue.
  */
 export const geminiQuizService = async (deckId, id) => {
     const aiResponses = [];
@@ -41,18 +42,18 @@ export const geminiQuizService = async (deckId, id) => {
     let message = `Quiz creation for deck with id:${deckId} is successful`;
 
     try {
+        // Validate input
+        if (!deckId || typeof deckId !== 'string') throw new Error("INVALID_DECK_ID");
+        if (!id || typeof id !== 'string') throw new Error("INVALID_USER_ID"); // TODO: CHECK IF THE REQUEST CAME FROM A VALID USER
+
         // Check if the deck was already made to a quiz and when was the last time the deck was updated
         const deckInfo = await getDeckAndCheckField(deckId, "made_to_quiz_at"); 
         
         // Retrieves the quiz related to the provided deck ID
         const quizzes = await getQuizByDeckIDAndQuizType(deckId, 'multiple-choice');
-        if (quizzes.length > 0) {
-            quizId = quizzes[0].id;
-            console.log("Quiz ID:", quizId);
-        } else {
-            console.log("No quiz found for this deck and quiz type.");
-        }
-
+        // If quizzes has an item assign the id of the firs element
+        if (quizzes.length > 0) quizId = quizzes[0].id;
+            
         /** Check if the following conditions are true
          * - The deck should exist
          * - The deck shoul not have a 'made_to_quiz_at' field
@@ -81,23 +82,29 @@ export const geminiQuizService = async (deckId, id) => {
                 console.log(`From ${i} to ${i+batchSize}`);
                 const batch = deckTermsAndDef.slice(i, i + batchSize);
                 const prompt = quizPrompt(batch.length);
-                const result = await sendPromptInline(quizSchema, prompt, formatData(batch));
+
+                let result;
+                try {
+                    result = await sendPromptInline(quizSchema, prompt, formatData(batch));
+                    if (!result.quiz_data || !Array.isArray(result.quiz_data.quiz)) {
+                        throw new Error("Invalid AI response: quiz_data is missing or not an array");
+                    }
+                } catch (error) {
+                    throw new Error("AI_GENERATION_FAILED");
+                }
                 
                 const questionAndAnswer = result.quiz_data.quiz;
                 await createQuestionAndAnswer(quizId, questionAndAnswer);
             }
             
-            // Update Deck information ( add the following fields to the deck: made_to_quiz_at, upgrade_at)
+            // Update Deck information ( add the following fields to the deck: made_to_quiz_at)
             await updateDeck(deckId, {made_to_quiz_at: timeStamp});
 
-            // Assign data to be returned
-            statusCode = 200;
+            // Response datac
             data = {quizId: quizId}
             
         }else{
-            /**
-             * This block is for when the given deck already has a quiz in the 'quiz' collection
-             */
+            // The deck already has a quiz, check for new flashcards
 
             // Retrieve new flashcards if there is any
             const newFlashcards = await getNewFlashcards(deckId);
@@ -108,17 +115,26 @@ export const geminiQuizService = async (deckId, id) => {
                 for (let i = 0; i < newFlashcards.length; i += batchSize) {
                     const batch = newFlashcards.slice(i, i + batchSize);
                     const prompt = quizPrompt(batch.length);
-                    const result = await sendPromptInline(quizSchema, prompt, formatData(batch));
-                    
+
+                    let result;
+                    try {
+                        result = await sendPromptInline(quizSchema, prompt, formatData(batch));
+                        if (!result.quiz_data || !Array.isArray(result.quiz_data.quiz)) {
+                            throw new Error("Invalid AI response: quiz_data is missing or not an array");
+                        }
+                    } catch (error) {
+                        throw new Error("AI_GENERATION_FAILED");
+                    }
+
                     const questionAndAnswer = result.quiz_data.quiz;
                     await createQuestionAndAnswer(quizId, questionAndAnswer);
                 }
 
-                statusCode = 200;
+                await updateDeck(deckId, {made_to_quiz_at: timeStamp});
+
                 data = {no_of_new_flashcards: numOfNewFlashCards}
                 message = `Quiz creation for new flashcards in deck ${deckId} is successful`
             } else{
-                statusCode = 200;
                 data = {quiz_id: quizId};
                 message = `There is already a quiz made for this deck in the 'quiz' collection`
             }
@@ -126,11 +142,30 @@ export const geminiQuizService = async (deckId, id) => {
     } catch (error) {
         message = "Quiz creation failed: " + error.message
         data = null;
-        if (error.message == "Deck not found") { statusCode = 404; }
-        else if (error.message == "Deck has no valid questions") { statusCode = 404; }
-        else { statusCode = 500; }
-    }
 
+        switch (error.message) {
+            case "INVALID_DECK_ID":
+                statusCode = 400;
+                break;
+            case "INVALID_USER_ID":
+                statusCode = 400;
+                break;
+            case "DECK_NOT_FOUND":
+                statusCode = 404;
+                break;
+            case "NO_VALID_QUESTIONS":
+                statusCode = 400;
+                break;
+            case "AI_GENERATION_FAILED":
+                statusCode = 502; // Bad Gateway (AI Failure)
+                break;
+            default:
+                statusCode = 500;
+                message = "A server-side error has occurred";
+                console.error(`Server-side error: ${error.message}`);
+                break;
+        }
+    }
     return {
         status: statusCode,
         request_owner_id: id,
