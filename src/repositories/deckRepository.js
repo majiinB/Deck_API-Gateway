@@ -45,3 +45,57 @@ export const getDeckById = async (deckId) => {
 
     return formatDeck(deckSnap.id, deckData, questions);
 };
+
+export const getDeckAndCheckField = async (deckId, fieldName) => {
+    try {
+        const deckRef = db.collection('decks').doc(deckId);
+        const deckSnap = await deckRef.get();
+
+        if (!deckSnap.exists) return{ exists: false, field_exists: false, message: 'Deck not found', data: null };
+        
+        const deckData = deckSnap.data();
+        const fieldExists = deckData.hasOwnProperty(fieldName);
+
+        if (!fieldExists) return{ exists: true, field_exists: false, message: `Deck has no ${fieldName} field`, data: null }
+
+        return { exists: true, field_exists: true, message: null, data: deckData['updated_at'] };
+        
+    } catch (error) {
+        console.error('Error fetching deck and checking field:', error);
+        return { exists: false, field_exists: false, message: 'An error occurred while fetching deck and checking field', data: null };
+    }
+}
+
+export const updateDeck = async (deckId, data) => {
+    try {
+        const deckRef = db.collection('decks').doc(deckId);
+        await deckRef.update(data);
+    } catch (error) {
+        console.error('Error updating deck:', error);
+        throw new Error(error);
+    }
+}
+
+export const getNewFlashcards = async (deckId) => {
+    try {
+        const deckRef = db.collection("decks").doc(deckId);
+        const deckSnap = await deckRef.get();
+
+        if (!deckSnap.exists) throw new Error("Deck not found");
+
+        const updated_at = deckSnap.data().updated_at;
+
+        const questionSnap = await deckRef
+            .collection("questions")
+            .where("is_deleted", "==", false)
+            .where("created_at", ">=", updated_at) // Ensure correct field name
+            .get();
+
+        const questions = questionSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) || [];
+
+        return questions;
+    } catch (error) {
+        console.error("Error fetching new flashcards:", error);
+        throw new Error("Failed to retrieve flashcards");
+    }
+};

@@ -64,3 +64,19 @@ export async function createChoices(questionAndAnswerId, choices, ref) {
         throw new Error("Create choices error");
     }
 }
+
+export async function getQuizByDeckIDAndQuizType(deckId, quizType){
+    try {
+        const quizSnap = await db.collection('quiz')
+        .where("associated_deck_id", "==", deckId)
+        .where("quiz_type", "==", quizType)
+        .get();
+
+        const quiz = quizSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) || [];
+        return quiz;
+
+    } catch (error) {
+        console.log(`Get quiz by deck and quiz type function error: ${error}`);
+        throw new Error("Quiz retrieval by deck id and quiz type error");
+    }
+}

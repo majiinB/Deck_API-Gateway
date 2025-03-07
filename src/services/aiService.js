@@ -235,11 +235,14 @@ export async function sendPromptInline(schema, prompt, data) {
             }
 
             const response = result.response.candidates[0].content.parts[0].text;
+            
             return {
                 quiz_data: JSON.parse(response),
             };
 
         } catch (error) {
+            console.log(error);
+            
             const retryableErrors = ["NetworkError", "TimeoutError", "ServiceUnavailable"];
             console.error(`Error on attempt ${attempt + 1}: ${error.message}`);
 
