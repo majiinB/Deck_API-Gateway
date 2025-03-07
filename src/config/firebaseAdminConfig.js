@@ -42,6 +42,7 @@ admin.initializeApp({
 })
 
 export const db = admin.firestore();
+export const timeStamp = admin.firestore.Timestamp.now();
 
 /**
  * Middleware to verify Firebase ID token from the request's Authorization header.

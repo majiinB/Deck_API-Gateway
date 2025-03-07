@@ -88,7 +88,7 @@ const safetySettings = [
  */
 export const getModel = (format = null, model = "gemini-1.5-flash") => {
 
-    if (model.trim() === '' || model === null) {
+    if (!model) {
         model = "gemini-1.5-flash"
     }
 
