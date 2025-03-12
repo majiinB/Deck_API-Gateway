@@ -1,20 +1,19 @@
 /**
- * Deck API - Moderation Service
+ * Deck API - Quiz Service
  *
- * @file moderationService.js
- * @description Provides AI-based moderation services for flashcards.
+ * @file quizService.js
+ * @description Provides AI-based quiz services for flashcards.
  * 
- * This module interacts with AI models (Gemini) to moderate flashcards 
- * by checking for inappropriate content.
+ * This module interacts with AI models (Gemini) to generate multiple choice quizzes based on the given flashcards 
  * 
  * @module moderationService
  * 
  * @requires ../repositories/deckRepository.js - Handles deck data retrieval.
- * @requires ../services/aiService.js - Handles AI moderation requests.
+ * @requires ../services/aiService.js - Handles AI quiz generation  inline data requests.
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-20
- * @updated 2025-03-05
+ * @updated 2025-03-12
  */
 import { getDeckById, getDeckAndCheckField, updateDeck, getNewFlashcards } from "../repositories/deckRepository.js";
 import { sendPromptInline } from "../services/aiService.js";
@@ -28,7 +27,7 @@ import { timeStamp } from "../config/firebaseAdminConfig.js";
  * @async
  * @function geminiQuizService
  * @param {string} deckId - The unique identifier of the deck.
- * @param {string} id - The ID of the request owner.
+ * @param {string} id - The user ID of the request owner.
  * @returns {Promise<Object>} - Returns an object containing the quiz ID or a message indicating quiz creation status.
  * @throws {Error} - Throws an error if the deck is invalid, AI response fails, or Firestore operations encounter an issue.
  */
@@ -56,7 +55,7 @@ export const geminiQuizService = async (deckId, id) => {
             
         /** Check if the following conditions are true
          * - The deck should exist
-         * - The deck shoul not have a 'made_to_quiz_at' field
+         * - The deck should not have a 'made_to_quiz_at' field
          * - There should be no quiz document in the quiz collection related to the deck ID
          * */ 
         if(deckInfo.exists && !deckInfo.field_exists && (quizzes.length == 0)){

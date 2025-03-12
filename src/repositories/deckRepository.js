@@ -14,10 +14,10 @@
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-21
- * @updated 2025-03-07
+ * @updated 2025-03-12
  */
 
-import { db } from '../config/firebaseAdminConfig.js';
+import { db, timeStamp } from '../config/firebaseAdminConfig.js';
 import { formatDeck } from '../models/deckModel.js';
 
 /**
@@ -180,4 +180,19 @@ export const getNewFlashcards = async (deckId) => {
         throw new Error(error.message);
     }
 };
+
+export const createDeck = async (deckData) => {
+    try {
+        // Validate input
+        if (!deckData || typeof deckData !== 'object') {
+            throw new Error("INVALID_QUIZ_DATA");
+        }
+
+        const res = await db.collection('decks').add(deckData);
+        return res.id;
+    } catch (error) {
+        console.error(`Create deck function error: ${error}`);
+        throw new Error(error.message);
+    }
+}
 
