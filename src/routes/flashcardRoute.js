@@ -31,7 +31,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2024-06-10
- * @updated 2025-02-20
+ * @updated 2025-03-10
  */
 
 import express from 'express';
@@ -42,7 +42,7 @@ const router = express.Router();
 
 /**
  * Route: POST /generate/:id
- * Description: Handles requests to generate questions using Google AI prompt construction. 
+ * Description: Handles requests to generate flashcards using Google AI prompt construction. 
  * Supports both file-based and manual input.
  * Parameters:
  *   - id: Unique identifier from the request URL

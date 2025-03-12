@@ -20,7 +20,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2024-06-10
- * @updated 2025-02-19
+ * @updated 2025-03-10
  * 
  */
 
@@ -46,25 +46,6 @@ export function delay(ms) {
  */
 export function isValidInteger(value) {
     return typeof value === 'number' && Number.isInteger(value) && value > 1 && value <= 20;
-}
-
-/**
- * Creates or retrieves a thread based on the input parameters.
- * @param {boolean} isNewMessage - Indicates if a new thread is to be created.
- * @param {string} givenThread - An existing thread ID or 'no_thread_id' if not applicable.
- * @returns {Promise<string>} - The ID of the created or provided thread.
- */
-export async function createThread(isNewMessage, givenThread) {
-    let thread;
-    let threadObj;
-
-    if (isNewMessage) {
-        threadObj = await openai.beta.threads.create();
-        thread = threadObj.id;
-    } else if (!isNewMessage && givenThread !== "no_thread_id") {
-        thread = givenThread;
-    }
-    return thread;
 }
 
 /**
@@ -180,8 +161,6 @@ export function extractGoogleAIJsonFromText(response) {
             .trim()
             .replace(/^```json\s*/, '')  // Remove leading ```json
             .replace(/```$/, '');        // Remove trailing ```
-
-        console.log("Cleaned response before parsing:", cleanedText);
 
         return JSON.parse(cleanedText);
     } catch (error) {

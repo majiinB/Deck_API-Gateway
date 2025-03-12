@@ -15,7 +15,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-12
- * @updated 2025-02-22
+ * @updated 2025-03-10
  * 
  */
 
@@ -33,11 +33,20 @@ import { downloadFile, downloadPdf } from "../repositories/fileRepository.js";
  * @returns {Promise<Object>} Response object containing the generated flashcards or error message.
  */
 export const geminiFlashcardService = async (request, id) => {
+    /**
+     * TODO: Directly store the generated flashcard instead. Instead of passing the whole deck content as json,
+     * return the generated flashcard ID from the process
+    */ 
+
     const { subject, topic, addDescription, fileName, fileExtension, numberOfQuestions } = request.body;
 
     const prompt = constructFlashCardGenerationPrompt(topic, subject, addDescription, numberOfQuestions);
 
     if (fileName?.trim()) {
+        /**
+         * This block is the process for flashcard generation base on the file uploaded
+         * TODO: Refactor code to store files temporarily in the /tmp file on firebase functions
+         */
         if (!fileExtension?.trim()) return { status: 422, message: 'File extension is required.', data: null };
 
         try {
@@ -45,12 +54,13 @@ export const geminiFlashcardService = async (request, id) => {
 
             if (!filePath) return { status: 500, message: 'Error retrieving the file from the server.', data: null };
 
+            // TODO: Add the database persistence logic for the flashcard here
             const response = await sendPromptFlashcardGeneration(true, prompt, filePath, fileExtension);
 
             return {
                 status: 200,
                 request_owner_id: id,
-                message: response.message,
+                message: response.message, // TODO: Replace this with the flashcard ID
                 data: response
             };
         } catch (error) {
@@ -66,10 +76,11 @@ export const geminiFlashcardService = async (request, id) => {
     } else {
         try {
             const response = await sendPromptFlashcardGeneration(false, prompt);
+            // TODO: Add the database persistence logic for the flashcard here
             return {
                 status: 200,
                 request_owner_id: id,
-                message: response.message,
+                message: response.message, // TODO: Replace this with the flashcard ID
                 data: response.data
             };
         } catch (error) {
