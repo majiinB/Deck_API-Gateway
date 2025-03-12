@@ -30,10 +30,14 @@ import { isValidInteger } from '../utils/utils.js';
  * @returns {Object} JSON response with generated prompts or an error message.
  */
 export const geminiFlashcardController = async (req, res) => {
-    const { subject, topic, fileName, numberOfQuestions } = req.body;
+    const { subject, topic, fileName, numberOfQuestions, deckTitle } = req.body;
 
     // Validate input: Either file or both subject and topic are required
     if (!fileName?.trim() && (!subject?.trim() || !topic?.trim())) {
+        return res.status(400).json({ message: 'Subject or topic is required if no file is uploaded.' });
+    }
+
+    if (!deckTitle?.trim()) {
         return res.status(400).json({ message: 'Subject or topic is required if no file is uploaded.' });
     }
 

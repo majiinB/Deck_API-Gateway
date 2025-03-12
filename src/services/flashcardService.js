@@ -19,9 +19,11 @@
  * 
  */
 
-import { deleteFile } from '../utils/utils.js';
+import { cleanTitle, deleteFile } from '../utils/utils.js';
 import { sendPromptFlashcardGeneration } from './aiService.js';
 import { downloadFile, downloadPdf } from "../repositories/fileRepository.js";
+import { createDeck, createFlashcard } from '../repositories/deckRepository.js';
+import { timeStamp } from '../config/firebaseAdminConfig.js';
 
 /**
  * Generates AI-generated flashcards using Gemini.
@@ -33,7 +35,9 @@ import { downloadFile, downloadPdf } from "../repositories/fileRepository.js";
  * @returns {Promise<Object>} Response object containing the generated flashcards or error message.
  */
 export const geminiFlashcardService = async (request, id) => {
-    const { subject, topic, addDescription, fileName, fileExtension, numberOfQuestions } = request.body;
+    const { subject, topic, addDescription, fileName, fileExtension, numberOfQuestions, deckTitle, coverPhotoRef  } = request.body;
+    
+    const coverPhoto = coverPhotoRef || 'https://firebasestorage.googleapis.com/v0/b/deck-f429c.appspot.com/o/deckCovers%2Fdefault%2FdeckDefault.png?alt=media&token=de6ac50d-13d0-411c-934e-fbeac5b9f6e0';
 
     const prompt = constructFlashCardGenerationPrompt(topic, subject, addDescription, numberOfQuestions);
 
@@ -46,12 +50,25 @@ export const geminiFlashcardService = async (request, id) => {
             if (!filePath) return { status: 500, message: 'Error retrieving the file from the server.', data: null };
 
             const response = await sendPromptFlashcardGeneration(true, prompt, filePath, fileExtension);
+            const flashcards = response.data.terms_and_definitions;
+            const deckId = await createDeck({
+                created_at: timeStamp,
+                is_deleted: false,
+                is_private: true,
+                title: cleanTitle(deckTitle),
+                owner_id: id,
+                cover_photo: coverPhoto
+            });
+
+            await createFlashcard(deckId, flashcards);
 
             return {
                 status: 200,
                 request_owner_id: id,
                 message: response.message,
-                data: response
+                data: {
+                    deckId: deckId
+                }
             };
         } catch (error) {
             return {
@@ -66,11 +83,25 @@ export const geminiFlashcardService = async (request, id) => {
     } else {
         try {
             const response = await sendPromptFlashcardGeneration(false, prompt);
+            const flashcards = response.data.terms_and_definitions;
+            const deckId = await createDeck({
+                created_at: timeStamp,
+                is_deleted: false,
+                is_private: true,
+                title: cleanTitle(deckTitle),
+                owner_id: id,
+                cover_photo: coverPhoto
+            });
+
+            await createFlashcard(deckId, flashcards);
+
             return {
                 status: 200,
                 request_owner_id: id,
                 message: response.message,
-                data: response.data
+                data: {
+                    deckId: deckId
+                }
             };
         } catch (error) {
             console.error('Error during file retrieval:', error);

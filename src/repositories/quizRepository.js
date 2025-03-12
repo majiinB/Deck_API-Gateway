@@ -89,21 +89,24 @@ export async function createQuestionAndAnswer(quizId, questionAndAnswer) {
 
         // Validate questionAndAnswer structure
         for (const item of questionAndAnswer) {
-            if (!item.question || typeof item.question !== 'string') {
-                throw new Error("INVALID_QUESTION");
-            }
-            if (item.related_flashcard_id && typeof item.related_flashcard_id !== 'string') {
-                throw new Error("INVALID_RELATED_FLASHCARD_ID");
-            }
-            if (!Array.isArray(item.choices) || item.choices.length === 0) {
-                throw new Error("INVALID_CHOICES_ARRAY");
-            }
+            
         }
 
         // Reference to Firestore collection
         const ref = db.collection('quiz').doc(quizId).collection('question_and_answers');
 
         for (const item of questionAndAnswer) {
+
+            if (!item.question || typeof item.question !== 'string') {
+                continue;
+            }
+            if (item.related_flashcard_id && typeof item.related_flashcard_id !== 'string') {
+                continue;
+            }
+            if (!Array.isArray(item.choices) || item.choices.length === 0) {
+                continue;
+            }
+            
             // Add question and answer to Firestore
             const questionAndAnswerRef = await ref.add({
                 question: item.question,

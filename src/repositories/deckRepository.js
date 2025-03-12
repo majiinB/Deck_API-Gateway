@@ -181,6 +181,21 @@ export const getNewFlashcards = async (deckId) => {
     }
 };
 
+/**
+ * Creates a new deck in the Firestore database.
+ *
+ * @async
+ * @function createDeck
+ * @param {Object} deckData - The data for the new deck.
+ * @param {string} deckData.created_at - The timestamp when the deck is created.
+ * @param {boolean} deckData.is_deleted - Whether the deck is deleted (soft delete flag).
+ * @param {boolean} deckData.is_private - Whether the deck is private.
+ * @param {string} deckData.title - The cleaned title of the deck.
+ * @param {string} deckData.owner_id - The ID of the deck's owner.
+ * @param {string} [deckData.cover_photo] - (Optional) URL of the deck's cover photo.
+ * @returns {Promise<string>} The unique ID of the newly created deck.
+ * @throws {Error} If the input data is invalid or Firestore operation fails.
+ */
 export const createDeck = async (deckData) => {
     try {
         // Validate input
@@ -192,6 +207,55 @@ export const createDeck = async (deckData) => {
         return res.id;
     } catch (error) {
         console.error(`Create deck function error: ${error}`);
+        throw new Error(error.message);
+    }
+}
+
+/**
+ * Adds flashcards to a specific deck in Firestore.
+ *
+ * @async
+ * @function createFlashcard
+ * @param {string} deckId - The ID of the deck to which the flashcards belong.
+ * @param {Array<Object>} flashcards - The array of flashcard objects.
+ * @param {string} flashcards[].term - The term or question of the flashcard.
+ * @param {string} flashcards[].definition - The definition or answer of the flashcard.
+ * @returns {Promise<void>} Resolves when all flashcards are added.
+ * @throws {Error} If input validation fails or Firestore operation encounters an error.
+ */
+export async function createFlashcard(deckId, flashcards) {
+    try {
+        // Validate inputs
+        if (!deckId || typeof deckId !== 'string') {
+            throw new Error("INVALID_DECK_ID");
+        }
+        if (!Array.isArray(flashcards) || flashcards.length === 0) {
+            throw new Error("INVALID_QUESTION_AND_ANSWER_DATA");
+        }
+
+        // Reference to Firestore collection
+        const ref = db.collection('decks').doc(deckId).collection('flashcards');
+
+        for (const item of flashcards) {
+
+             if (!item.term || typeof item.term !== 'string') {
+                continue;
+            }
+            if (item.definition && typeof item.definition !== 'string') {
+                continue;
+            }
+
+            // Add question and answer to Firestore
+            const questionAndAnswerRef = await ref.add({
+                term: item.term,
+                created_at: timeStamp,
+                definition: item.definition,
+                is_deleted: false,
+                is_starred: false,
+            });
+        }
+    } catch (error) {
+        console.error(`Error in create flashcard function (quizId: ${deckId}):`, error);
         throw new Error(error.message);
     }
 }

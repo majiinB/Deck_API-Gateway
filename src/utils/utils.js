@@ -188,4 +188,25 @@ export function extractGoogleAIJsonFromText(response) {
         console.error('Failed to parse JSON:', error);
         return {};
     }
-}
+};
+
+/**
+ * Cleans and formats a title string.
+ * 1. Replaces consecutive spaces with a single space.
+ * 2. Trims leading and trailing spaces.
+ * 3. Capitalizes the first letter of every word.
+ * 
+ * @param {string} title - The input title string.
+ * @returns {string} - The cleaned and formatted title.
+ */
+export const cleanTitle = (title) => {
+    return title
+        .toLowerCase()
+        .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
+        .trim() // Trim leading and trailing spaces
+        .split(' ') // Split into words
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
+        .join(' '); // Join words back into a string
+};
+
+
