@@ -64,8 +64,8 @@ export const geminiModerationService = async (deckId, id) => {
         message = "Moderation review failed: " + error.message
         data = null;
 
-        if (error.message == "Deck not found") { statusCode = 404; }
-        else if (error.message == "Deck has no valid questions") { statusCode = 404; }
+        if (error.message == "DECK_NOT_FOUND") { statusCode = 404; }
+        else if (error.message == "NO_VALID_FLASHCARDS") { statusCode = 404; }
         else { statusCode = 500; }
     }
 

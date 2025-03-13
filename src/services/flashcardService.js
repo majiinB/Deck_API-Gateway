@@ -100,7 +100,7 @@ export const geminiFlashcardService = async (request, id) => {
                 request_owner_id: id,
                 message: response.message,
                 data: {
-                    deckId: deckId
+                    deckId: deckId // Replace with flashcards to show the processed ai response
                 }
             };
         } catch (error) {

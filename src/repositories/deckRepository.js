@@ -14,7 +14,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-21
- * @updated 2025-03-12
+ * @updated 2025-03-14
  */
 
 import { db, timeStamp } from '../config/firebaseAdminConfig.js';
@@ -42,14 +42,14 @@ export const getDeckById = async (deckId) => {
         // If deck does not exist
         if (!deckSnap.exists) throw new Error("DECK_NOT_FOUND");
     
-        const questionSnap = await deckRef.collection("questions").where("is_deleted", "==", false).get();
-        const questions = questionSnap?.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || [];
+        const flashcardSnap = await deckRef.collection("flashcards").where("is_deleted", "==", false).get();
+        const flashcards = flashcardSnap?.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || [];
     
-        if (questions.length === 0) throw new Error("NO_VALID_QUESTIONS");
+        if (flashcards.length === 0) throw new Error("NO_VALID_FLASHCARDS");
     
         const deckData = deckSnap.data();
 
-        return formatDeck(deckSnap.id, deckData, questions);
+        return formatDeck(deckSnap.id, deckData, flashcards);
     } catch (error) {
         console.error(`Error in getDeckById (deckId: ${deckId}):`, error);
         throw new Error(error.message);

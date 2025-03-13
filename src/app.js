@@ -59,7 +59,7 @@ const corsOptions = {
     origin: (origin, callback) => {
         console.log(`CORS Request from: ${origin}`);
         const allowedOrigins = ['https://frontend.com'];
-        if (origin && allowedOrigins.includes(origin)) {
+        if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true); // Allow request
         } else {
             callback(new Error('Not allowed by CORS'));
@@ -86,7 +86,7 @@ app.use(express.json());
 app.use(errorHandler);
 
 //END POINTS
-app.use('/v2/deck/generate', flashcardRoute);
+app.use('/v2/deck/generate/flashcards', flashcardRoute);
 app.use('/v2/deck/moderate', moderationRoute);
 app.use('/v2/deck/generate/quiz', quizRoute );
 

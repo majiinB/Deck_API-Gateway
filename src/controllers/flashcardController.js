@@ -14,7 +14,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-12
- * @updated 2025-02-20
+ * @updated 2025-03-14
  */
 
 import { geminiFlashcardService } from '../services/flashcardService.js';
@@ -31,19 +31,35 @@ import { isValidInteger } from '../utils/utils.js';
  */
 export const geminiFlashcardController = async (req, res) => {
     const { subject, topic, fileName, numberOfQuestions, deckTitle } = req.body;
+    const userId = req.params.id;
 
     // Validate input: Either file or both subject and topic are required
     if (!fileName?.trim() && (!subject?.trim() || !topic?.trim())) {
-        return res.status(400).json({ message: 'Subject or topic is required if no file is uploaded.' });
+        return res.status(400).json({
+                status: 400,
+                request_owner_id: userId,
+                message: 'Subject or topic is required if no file is uploaded.',
+                data: null
+            });
     }
 
     if (!deckTitle?.trim()) {
-        return res.status(400).json({ message: 'Subject or topic is required if no file is uploaded.' });
+        return res.status(400).json({
+                status: 400,
+                request_owner_id: userId,
+                message: 'Deck title is required: deckTitle',
+                data: null
+            });
     }
 
     // Validate the number of questions
     if (!isValidInteger(numberOfQuestions)) {
-        return res.status(422).json({ message: 'Invalid number of questions. It must be between 2 and 20.' });
+        return res.status(422).json({ 
+            status: 422,
+            request_owner_id: userId,
+            message: 'Invalid number of questions. It must be between 2 and 20.',
+            data: null
+        });
     }
 
     const result = await geminiFlashcardService(req, req.params.id);
