@@ -15,7 +15,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-12
- * @updated 2025-03-12
+ * @updated 2025-03-19
  * 
  */
 
@@ -35,11 +35,11 @@ import { timeStamp } from '../config/firebaseAdminConfig.js';
  * @returns {Promise<Object>} Response object containing the generated flashcards or error message.
  */
 export const geminiFlashcardService = async (request, id) => {
-    const { subject, topic, addDescription, fileName, fileExtension, numberOfQuestions, deckTitle, coverPhotoRef  } = request.body;
+    const { subject, topic, addDescription, fileName, fileExtension, numberOfFlashcards, deckTitle, coverPhotoRef  } = request.body;
     
     const coverPhoto = coverPhotoRef || 'https://firebasestorage.googleapis.com/v0/b/deck-f429c.appspot.com/o/deckCovers%2Fdefault%2FdeckDefault.png?alt=media&token=de6ac50d-13d0-411c-934e-fbeac5b9f6e0';
 
-    const prompt = constructFlashCardGenerationPrompt(topic, subject, addDescription, numberOfQuestions);
+    const prompt = constructFlashCardGenerationPrompt(topic, subject, addDescription, numberOfFlashcards);
 
     if (fileName?.trim()) {
         if (!fileExtension?.trim()) return { status: 422, message: 'File extension is required.', data: null };
@@ -84,6 +84,7 @@ export const geminiFlashcardService = async (request, id) => {
         try {
             const response = await sendPromptFlashcardGeneration(false, prompt);
             const flashcards = response.data.terms_and_definitions;
+            
             const deckId = await createDeck({
                 created_at: timeStamp,
                 is_deleted: false,
@@ -118,18 +119,19 @@ export const geminiFlashcardService = async (request, id) => {
 /**
  * Constructs a JSON prompt for the Google AI model.
  * 
- * @param {string} topic - The topic for the questions.
- * @param {string} subject - The subject area for the questions.
+ * @param {string} topic - The topic for the flashcard.
+ * @param {string} subject - The subject area for the flashcard.
  * @param {string} addDescription - Additional description for the prompt.
- * @param {number} numberOfQuestions - Number of questions to generate.
+ * @param {number} numberOfFlashcards - Number of flashcards to generate.
  * @returns {string} - The constructed JSON prompt.
  */
-export function constructFlashCardGenerationPrompt(topic, subject, addDescription, numberOfTerms) {
+export function constructFlashCardGenerationPrompt(topic, subject, addDescription, numberOfFlashcards) {
     let prompt = 'I want you to act as a Professor providing students with terminologies and their definitions. ';
-    let instruction = `Instructions: Provide ${numberOfTerms} terms with their definitions. `;
-    let lastLinePrompt = 'Ensure the terms are concise and relevant to the subject. Do not provide question-and-answer pairs. ' +
+    let instruction = `Instructions: Provide ${numberOfFlashcards} terms with their definitions. `;
+    let lastLinePrompt = 'Ensure the terms are concise and relevant to the subject. Do not provide term-and-definition pairs. ' +
         'Do not include computations or numerical problem-solving examples. ' +
         'Do not start terms with "Who," "What," "Where," or "When."' +
+        'Make sure that definition is not more than one or two sentences' +
         'Reject prompts that are not related to academics, offensive, sexual, etc.. and give an error' +
         'Expected output format:' +
         '"terms_and_definition": [{"term": "Variable","definition": "A symbol, usually a letter, representing an unknown numerical value in an algebraic expression or equation."},' +

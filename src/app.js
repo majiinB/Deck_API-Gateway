@@ -12,6 +12,8 @@
  * Middleware:
  * - express.json(): Parses incoming request bodies in JSON format.
  * - errorHandler: Custom error handler middleware to log errors and return a 422 Unprocessable Entity response.
+ * - CORS policy: (Cross origin resource sharing) checks if the request came from a valid source
+ * - limiter: Controls the rate of request from a user (through IP)
  * 
  * Functions:
  * - errorHandler: Middleware function for error handling.
@@ -25,7 +27,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2024-06-10
- * @updated 2025-02-19
+ * @updated 2025-03-14
  */
 
 import express from 'express';
@@ -77,9 +79,6 @@ const limiter = rateLimit({
 const app = express();
 
 // MIDDLEWARE
-/*
- * To parse and read body to json
- */
 app.use(cors(corsOptions));
 app.use(limiter);
 app.use(express.json());

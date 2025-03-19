@@ -14,7 +14,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-21
- * @updated 2025-03-14
+ * @updated 2025-03-19
  */
 
 import { db, timeStamp } from '../config/firebaseAdminConfig.js';
@@ -27,7 +27,7 @@ import { formatDeck } from '../models/deckModel.js';
  * @function getDeckById
  * @param {string} deckId - The unique identifier of the deck.
  * @returns {Promise<Object>} - Returns a formatted deck object.
- * @throws {Error} - Throws an error if the deck ID is invalid, not found, or has no valid questions.
+ * @throws {Error} - Throws an error if the deck ID is invalid, not found, or has no valid flashcards.
  */
 export const getDeckById = async (deckId) => {
     try {
@@ -63,7 +63,7 @@ export const getDeckById = async (deckId) => {
  * @function getDeckById
  * @param {string} deckId - The unique identifier of the deck.
  * @returns {Promise<Object>} - Returns a formatted deck object.
- * @throws {Error} - Throws an error if the deck ID is invalid, not found, or has no valid questions.
+ * @throws {Error} - Throws an error if the deck ID is invalid, not found, or has no valid flashcards.
  */
 export const getDeckAndCheckField = async (deckId, fieldName) => {
     try {
@@ -165,16 +165,16 @@ export const getNewFlashcards = async (deckId) => {
         }
 
         // Query new flashcards created after the last update
-        const questionSnap = await deckRef
-            .collection("questions")
+        const flashcardSnap = await deckRef
+            .collection("flashcards")
             .where("is_deleted", "==", false)
             .where("created_at", ">=", madeToQuizAt) 
             .get();
 
         // Extract flashcard data
-        const questions = questionSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) || [];
+        const flashcards = flashcardSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) || [];
 
-        return questions;
+        return flashcards;
     } catch (error) {
         console.error(`Error in getNewFlashcards (deckId: ${deckId}):`, error);
         throw new Error(error.message);
@@ -218,7 +218,7 @@ export const createDeck = async (deckData) => {
  * @function createFlashcard
  * @param {string} deckId - The ID of the deck to which the flashcards belong.
  * @param {Array<Object>} flashcards - The array of flashcard objects.
- * @param {string} flashcards[].term - The term or question of the flashcard.
+ * @param {string} flashcards[].term - The term of the flashcard.
  * @param {string} flashcards[].definition - The definition or answer of the flashcard.
  * @returns {Promise<void>} Resolves when all flashcards are added.
  * @throws {Error} If input validation fails or Firestore operation encounters an error.
@@ -230,7 +230,7 @@ export async function createFlashcard(deckId, flashcards) {
             throw new Error("INVALID_DECK_ID");
         }
         if (!Array.isArray(flashcards) || flashcards.length === 0) {
-            throw new Error("INVALID_QUESTION_AND_ANSWER_DATA");
+            throw new Error("INVALID_TERM_AND_DEFINITION_DATA");
         }
 
         // Reference to Firestore collection
@@ -245,8 +245,8 @@ export async function createFlashcard(deckId, flashcards) {
                 continue;
             }
 
-            // Add question and answer to Firestore
-            const questionAndAnswerRef = await ref.add({
+            // Add term and definition to Firestore
+            await ref.add({
                 term: item.term,
                 created_at: timeStamp,
                 definition: item.definition,

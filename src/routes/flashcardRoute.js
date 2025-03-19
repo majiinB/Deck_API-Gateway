@@ -3,7 +3,7 @@
  *
  * @file router.js
  * @description This module defines the routes for the Deck API, which interacts with OpenAI and Gemini services 
- * to generate AI-based questions, flashcards, and responses. It handles PDF downloads, text extraction, 
+ * to generate AI-based flashcards, and responses. It handles PDF downloads, text extraction, 
  * and prompt construction for various scenarios.
  *
  * Routes:
@@ -31,7 +31,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2024-06-10
- * @updated 2025-02-20
+ * @updated 2025-03-19
  */
 
 import express from 'express';
@@ -42,17 +42,17 @@ const router = express.Router();
 
 /**
  * Route: POST /generate/:id
- * Description: Handles requests to generate questions using Google AI prompt construction. 
+ * Description: Handles requests to generate deck of flashcards using Google AI prompt construction. 
  * Supports both file-based and manual input.
  * Parameters:
  *   - id: Unique identifier from the request URL
  * Request Body:
- *   - subject: Subject of the questions (optional if file is provided)
- *   - topic: Topic of the questions (optional if file is provided)
+ *   - subject: Subject of the flashcard (optional if file is provided)
+ *   - topic: Topic of the flashcard (optional if file is provided)
  *   - addDescription: Additional context or description (optional)
  *   - fileName: Name of the uploaded file (optional)
  *   - fileExtension: File extension (e.g., pdf, txt)
- *   - numberOfQuestions: Number of questions to generate (2-20)
+ *   - numberOfFlashcards: Number of flashcards to generate (2-20)
  */
 router.post('/:id', geminiFlashcardController) // put verifyFirebaseToken as second parameter to enable jwt verification
 

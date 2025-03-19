@@ -14,7 +14,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-20
- * @updated 2025-02-22
+ * @updated 2025-03-19
  */
 import { getDeckById } from "../repositories/deckRepository.js";
 import { sendPromptModeration, countToken, sendPromptInline} from "../services/aiService.js";
@@ -38,11 +38,15 @@ export const geminiModerationService = async (deckId, id) => {
 
     try {
         const deck = await getDeckById(deckId);
-        const deckTermsAndDef = deck.questions;
+        const deckTermsAndDef = deck.flashcards;
+        console.log(deckTermsAndDef);
+        
 
         const deckData = formatPrompt(deckTermsAndDef);
         const prompt = moderationPrompt();
         const result = await sendPromptInline(moderatedFlashcardsSchema, prompt,deckData);
+        console.log(result);
+        
         statusCode = 200;
         data = result;
 
@@ -102,7 +106,7 @@ const chunkArray = (array, chunkSize) => {
  * @returns {string} A formatted string for AI moderation.
  */
 const formatPrompt = (questionsChunk) => {
-    return questionsChunk.map(q => `Description: ${q.question}\nTerm: ${q.answer}`).join("\n\n");
+    return questionsChunk.map(q => `Description: ${q.definition}\nTerm: ${q.term}`).join("\n\n");
 };
 
 
@@ -153,7 +157,7 @@ const moderationPrompt = (questionsChunk = null) => {
                     determine if any content is inappropriate.
 
                     ### Inappropriate content includes:
-                    - Hate speech, discrimination, or offensive language.
+                    - Hate speech, discrimination, profanity or offensive language.
                     - Sexual, violent, or disturbing content.
                     - Misinformation or misleading facts.
                     - Any content that is harmful, unethical, or violates academic integrity.

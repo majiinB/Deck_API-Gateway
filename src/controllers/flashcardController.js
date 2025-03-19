@@ -14,7 +14,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2025-02-12
- * @updated 2025-03-14
+ * @updated 2025-03-19
  */
 
 import { geminiFlashcardService } from '../services/flashcardService.js';
@@ -30,7 +30,7 @@ import { isValidInteger } from '../utils/utils.js';
  * @returns {Object} JSON response with generated prompts or an error message.
  */
 export const geminiFlashcardController = async (req, res) => {
-    const { subject, topic, fileName, numberOfQuestions, deckTitle } = req.body;
+    const { subject, topic, fileName, numberOfFlashcards, deckTitle } = req.body;
     const userId = req.params.id;
 
     // Validate input: Either file or both subject and topic are required
@@ -52,12 +52,12 @@ export const geminiFlashcardController = async (req, res) => {
             });
     }
 
-    // Validate the number of questions
-    if (!isValidInteger(numberOfQuestions)) {
+    // Validate the number of flashcards
+    if (!isValidInteger(numberOfFlashcards)) {
         return res.status(422).json({ 
             status: 422,
             request_owner_id: userId,
-            message: 'Invalid number of questions. It must be between 2 and 20.',
+            message: 'Invalid number of flashcards. It must be between 2 and 20.',
             data: null
         });
     }

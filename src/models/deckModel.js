@@ -1,6 +1,6 @@
 // utils/formatDeck.js
 
-export const formatDeck = (deckId, deckData, questions) => ({
+export const formatDeck = (deckId, deckData, flashcards) => ({
     id: deckId,
     title: deckData.title,
     isDeleted: deckData.is_deleted,
@@ -8,10 +8,10 @@ export const formatDeck = (deckId, deckData, questions) => ({
     deckOwnerId: deckData.user_id,
     // description: deckData.description, TO-DO: add a description field for deck
     createdAt: deckData.created_at,
-    questions: questions.map(q => ({
-        id: q.id,
-        question: q.question,
-        answer: q.answer
+    flashcards: flashcards.map(f => ({
+        id: f.id,
+        description: f.description,
+        term: f.term
     }))
 });
 
