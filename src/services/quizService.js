@@ -35,6 +35,7 @@ export const geminiQuizService = async (deckId, id) => {
     const aiResponses = [];
     const batchSize = 20;
     let quizId = "";
+    let quizUpdateDate = "";
     let tokenCount = 0;
     let statusCode = 200;
     let data = null;
@@ -50,8 +51,11 @@ export const geminiQuizService = async (deckId, id) => {
         
         // Retrieves the quiz related to the provided deck ID
         const quizzes = await getQuizByDeckIDAndQuizType(deckId, 'multiple-choice');
-        // If quizzes has an item assign the id of the firs element
-        if (quizzes.length > 0) quizId = quizzes[0].id;
+        // If quizzes has an item assign the id of the first element
+        if (quizzes.length > 0) {
+            quizId = quizzes[0].id;
+            quizUpdateDate = quizzes[0].updated_at;
+        }
             
         /** Check if the following conditions are true
          * - The deck should exist
@@ -78,7 +82,6 @@ export const geminiQuizService = async (deckId, id) => {
             });
 
             for (let i = 0; i < deckTermsAndDef.length; i += batchSize) {
-                console.log(`From ${i} to ${i+batchSize}`);
                 const batch = deckTermsAndDef.slice(i, i + batchSize);
                 const prompt = quizPrompt(batch.length);
 
@@ -102,15 +105,14 @@ export const geminiQuizService = async (deckId, id) => {
             // Response datac
             data = {quizId: quizId}
             
-        }else{
+        }else if(quizzes.length >= 1){
             // The deck already has a quiz, check for new flashcards
 
             // Retrieve new flashcards if there is any
-            const newFlashcards = await getNewFlashcards(deckId);
+            const newFlashcards = await getNewFlashcards(deckId, quizUpdateDate);
             const numOfNewFlashCards = newFlashcards.length;
 
             if(numOfNewFlashCards > 0){
-                
                 for (let i = 0; i < newFlashcards.length; i += batchSize) {
                     const batch = newFlashcards.slice(i, i + batchSize);
                     const prompt = quizPrompt(batch.length);
@@ -150,6 +152,9 @@ export const geminiQuizService = async (deckId, id) => {
                 statusCode = 400;
                 break;
             case "DECK_NOT_FOUND":
+                statusCode = 404;
+                break;
+            case "MISSING_MADE_TO_QUIZ_AT_FIELD":
                 statusCode = 404;
                 break;
             case "NO_VALID_QUESTIONS":

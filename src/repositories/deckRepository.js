@@ -140,7 +140,7 @@ export const updateDeck = async (deckId, data) => {
  * @returns {Promise<Array<Object>>} - Returns an array of new flashcards.
  * @throws {Error} - Throws an error if the deck ID is invalid, the deck is not found, or the query operation fails.
  */
-export const getNewFlashcards = async (deckId) => {
+export const getNewFlashcards = async (deckId, quizUpdateDate) => {
     try {
         // Validate input
         if (!deckId || typeof deckId !== "string") {
@@ -158,10 +158,11 @@ export const getNewFlashcards = async (deckId) => {
 
         // Retrieve last updated timestamp
         const deckData = deckSnap.data();
-        const madeToQuizAt = deckData?.made_to_quiz_at;
-
-        if (!madeToQuizAt) {
-            throw new Error("MISSING_MADE_TO_QUIZ_AT_FIELD");
+        let madeToQuizAt = deckData?.made_to_quiz_at;
+        
+        if (!madeToQuizAt && (quizUpdateDate != "")) {
+            await updateDeck(deckId, {made_to_quiz_at: quizUpdateDate});
+            madeToQuizAt = quizUpdateDate;
         }
 
         // Query new flashcards created after the last update
