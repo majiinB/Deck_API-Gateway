@@ -4,9 +4,9 @@
 
 ---
 
-# 🚪 Deck API Gateway
+# 🚪 Deck AI API Service
 
-The Deck API Gateway serves as a bridge between your "Deck" application and both the OpenAI API and Gemini AI, facilitating the processing and connection of data. It provides endpoints for interacting with the Deck application and leveraging the power of these AI services for generating flashcards and enhancing productivity.
+**Deck AI API Service** is a microservice within the *Deck* ecosystem that handles all AI-related functionalities. It integrates Gemini AI to process user input, generate flashcards, generate quizzes, help moderate deck of flashcards and enhance productivity. This service provides dedicated endpoints for AI-driven content generation, ensuring seamless interaction between the *Deck* application and AI models.
 
 ---
 
