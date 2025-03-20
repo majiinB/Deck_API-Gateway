@@ -146,6 +146,7 @@
 #### 📝 Quiz Generation
 
 - **POST** `/v2/deck/generate/quiz/:id`
+
   - **Description:** Generates quiz questions based on provided deck id using Gemini AI.
   - **Path Parameter:**
     - `id` (string) – The user's unique ID.
@@ -156,17 +157,20 @@
     }
     ```
   - **Response:**
+
     ```json
     {
       "status": 200,
       "request_owner_id": "<id>",
       "message": "Quiz creation for deck with id:<id> is successful",
       "data": {
-        "quizId": "4A4xjmhyahUjjMKWFGxN"
+        "quizId": "<quiz_id>"
       }
     }
     ```
+
     or
+
     ```json
     {
       "status": 200,
@@ -176,6 +180,20 @@
         "quiz_id": "<quiz_id>"
       }
     }
+    ```
+
+    or
+
+    ```json
+    {
+      "status": 200,
+      "request_owner_id": "<id>",
+      "message": "Quiz creation for new flashcards in deck ekZBroavEBX76mAXVG9Z is successful",
+      "data": {
+          "no_of_new_flashcards": <num_of_new_flashcards_detected>
+      }
+    }
+
     ```
 
 ---
