@@ -39,11 +39,8 @@ export const geminiModerationService = async (deckId, id) => {
     try {
         const deck = await getDeckById(deckId);
         const deckTermsAndDef = deck.flashcards;
-        console.log("deck terms and def ", JSON.stringify(deckTermsAndDef, null, 2));
-        
         
         const deckData = formatPrompt(deckTermsAndDef);
-        console.log("deckdata: "+deckData);
         
         const prompt = moderationPrompt();
         const result = await sendPromptInline(moderatedFlashcardsSchema, prompt,deckData);

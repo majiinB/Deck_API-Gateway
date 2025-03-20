@@ -31,7 +31,7 @@
  * 
  * @author Arthur M. Artugue
  * @created 2024-06-10
- * @updated 2025-03-19
+ * @updated 2025-03-20
  */
 
 import express from 'express';
@@ -54,6 +54,6 @@ const router = express.Router();
  *   - fileExtension: File extension (e.g., pdf, txt)
  *   - numberOfFlashcards: Number of flashcards to generate (2-20)
  */
-router.post('/:id', geminiFlashcardController) // put verifyFirebaseToken as second parameter to enable jwt verification
+router.post('/:id', verifyFirebaseToken, geminiFlashcardController) // put verifyFirebaseToken as second parameter to enable jwt verification
 
 export default router;

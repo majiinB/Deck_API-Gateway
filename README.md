@@ -15,8 +15,8 @@
 ### Gemini Integration
 
 - **⚡ Flashcard Generation**: Utilize Gemini to automatically generate flashcards from study materials (pdf files) and text inputs.
-- \*\*📝 Quiz Generation: Generate interactive multiple-choice quizzes using AI, based on your deck of flashcards.
-- \*\*🛡️ Content Moderation: Ensure appropriate and high-quality content by using AI to filter and analyze user-generated inputs, preventing harmful or irrelevant material.
+- **📝 Quiz Generation**: Generate interactive multiple-choice quizzes using AI, based on your deck of flashcards.
+- **🛡️ Content Moderation**: Ensure appropriate and high-quality content by using AI to filter and analyze user-generated inputs, preventing harmful or irrelevant material.
 
 ---
 
@@ -25,7 +25,7 @@
 ### Prerequisites
 
 - Node.js installed
-- OpenAI API key
+- Gemini API key
 - Firebase admin SDK
 
 ### Installation
