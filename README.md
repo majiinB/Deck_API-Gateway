@@ -161,7 +161,9 @@
       "status": 200,
       "request_owner_id": "<id>",
       "message": "Quiz creation for deck with id:<id> is successful",
-      "data": null
+      "data": {
+        "quizId": "4A4xjmhyahUjjMKWFGxN"
+      }
     }
     ```
     or

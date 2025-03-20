@@ -37,9 +37,9 @@ export const geminiQuizService = async (deckId, id) => {
     let quizId = "";
     let quizUpdateDate = "";
     let tokenCount = 0;
-    let statusCode = 200;
+    let statusCode = 400;
     let data = null;
-    let message = `Quiz creation for deck with id:${deckId} is successful`;
+    let message = `Quiz creation for deck with id:${deckId} is unsuccessful`;
 
     try {
         // Validate input
@@ -51,18 +51,19 @@ export const geminiQuizService = async (deckId, id) => {
         
         // Retrieves the quiz related to the provided deck ID
         const quizzes = await getQuizByDeckIDAndQuizType(deckId, 'multiple-choice');
+
         // If quizzes has an item assign the id of the first element
-        if (quizzes.length > 0) {
+        if (quizzes?.length > 0) {
             quizId = quizzes[0].id;
             quizUpdateDate = quizzes[0].updated_at;
         }
-            
+
         /** Check if the following conditions are true
          * - The deck should exist
          * - The deck should not have a 'made_to_quiz_at' field
          * - There should be no quiz document in the quiz collection related to the deck ID
          * */ 
-        if(deckInfo.exists && !deckInfo.field_exists && (quizzes.length == 0)){
+        if(deckInfo?.exists && !deckInfo.field_exists && (!quizzes || quizzes.length === 0)){
             /**
              * This block is for when the given deck doesn't have any quiz in the 'quiz' collection
              * The deck still has no quiz made for it
@@ -70,7 +71,8 @@ export const geminiQuizService = async (deckId, id) => {
             
             // Retrieve and process deck data to be passed to the AI
             const deck = await getDeckById(deckId);
-            const deckTermsAndDef = deck.questions;
+            const deckTermsAndDef = deck.flashcards;
+            console.log(JSON.stringify(deckTermsAndDef, true, 2));
             
             // Retrieve and process results that will be stored in the database ( 'quiz' collection )
             quizId = await createQuizForDeck({
@@ -81,31 +83,34 @@ export const geminiQuizService = async (deckId, id) => {
                 updated_at:  timeStamp,
             });
 
-            for (let i = 0; i < deckTermsAndDef.length; i += batchSize) {
-                const batch = deckTermsAndDef.slice(i, i + batchSize);
-                const prompt = quizPrompt(batch.length);
-
-                let result;
-                try {
-                    result = await sendPromptInline(quizSchema, prompt, formatData(batch));
-                    if (!result.quiz_data || !Array.isArray(result.quiz_data.quiz)) {
-                        throw new Error("Invalid AI response: quiz_data is missing or not an array");
+            if(Array.isArray(deckTermsAndDef) && deckTermsAndDef.length > 0){
+                for (let i = 0; i < deckTermsAndDef?.length; i += batchSize) {
+                    const batch = deckTermsAndDef?.slice(i, i + batchSize);
+                    const prompt = quizPrompt(batch.length);
+    
+                    let result;
+                    try {
+                        result = await sendPromptInline(quizSchema, prompt, formatData(batch));
+                        if (!result.quiz_data || !Array.isArray(result.quiz_data.quiz)) {
+                            throw new Error("Invalid AI response: quiz_data is missing or not an array");
+                        }
+                    } catch (error) {
+                        throw new Error("AI_GENERATION_FAILED");
                     }
-                } catch (error) {
-                    throw new Error("AI_GENERATION_FAILED");
+                    
+                    const questionAndAnswer = result.quiz_data.quiz;
+                    await createQuestionAndAnswer(quizId, questionAndAnswer);
                 }
-                
-                const questionAndAnswer = result.quiz_data.quiz;
-                await createQuestionAndAnswer(quizId, questionAndAnswer);
+                // Update Deck information ( add the following fields to the deck: made_to_quiz_at)
+                await updateDeck(deckId, {made_to_quiz_at: timeStamp});
+
+                // Response data
+                statusCode = 200;
+                data = {quizId: quizId}
+                message = `Quiz creation for deck with id:${deckId} is successful`;
             }
             
-            // Update Deck information ( add the following fields to the deck: made_to_quiz_at)
-            await updateDeck(deckId, {made_to_quiz_at: timeStamp});
-
-            // Response datac
-            data = {quizId: quizId}
-            
-        }else if(quizzes.length >= 1){
+        }else if(quizzes && quizzes.length >= 1){
             // The deck already has a quiz, check for new flashcards
 
             // Retrieve new flashcards if there is any
@@ -133,9 +138,11 @@ export const geminiQuizService = async (deckId, id) => {
 
                 await updateDeck(deckId, {made_to_quiz_at: timeStamp});
 
+                statusCode = 200;
                 data = {no_of_new_flashcards: numOfNewFlashCards}
                 message = `Quiz creation for new flashcards in deck ${deckId} is successful`
             } else{
+                statusCode = 200;
                 data = {quiz_id: quizId};
                 message = `There is already a quiz made for this deck in the 'quiz' collection`
             }
