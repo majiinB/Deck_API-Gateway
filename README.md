@@ -43,7 +43,7 @@
    - `APP_ID`: Found in Firebase admin.
    - `KEY_FILE`: Found in Firebase Service Providers.
 4. 📃 generate your firebase private key json file and place it in your project's root folder
-5. 🚀 Run the server using `npm start`.
+5. 🚀 Run the server using `npm start` or `nodemon`.
 
 ---
 
