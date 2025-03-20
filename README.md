@@ -12,8 +12,10 @@
 
 ## 🌟 Features
 
-### OpenAI and Gemini Integration
-- **⚡ Flashcard Generation**: Utilize the OpenAI API and Gemini to automatically generate flashcards from study materials (pdf files) and text inputs.
+### Gemini Integration
+- **⚡ Flashcard Generation**: Utilize Gemini to automatically generate flashcards from study materials (pdf files) and text inputs.
+- **📝 Quiz Generation: Generate interactive multiple-choice quizzes using AI, based on your deck of flashcards.
+- **🛡️ Content Moderation: Ensure appropriate and high-quality content by using AI to filter and analyze user-generated inputs, preventing harmful or irrelevant material.
 
 ---
 
@@ -28,7 +30,6 @@
 1. 🛠️ Clone this repository to your local machine.
 2. 📦 Install dependencies using `npm install`.
 3. ⚙️ Set up environment variables:
-   - `OPENAI_API_KEY`: Your OpenAI API key.
    - `GEMINI_API_KEY`: Your Google Generative AI API key.
    - `ASSISTANT_ID`: Your OpenAI assistant ID.
    - `FIREBASE_API_KEY`: Found in Firebase admin.
@@ -45,11 +46,84 @@
 
 ### 📡 API Endpoints
 
-#### OpenAI Integration
-- `GET /hi`: To check if the API is online
-- `POST /prompt/v1/openAI/:id`: Send prompt or message to OpenAI assistant.
-- `POST /prompt/v2/gemini/:id`: Send prompt or message to Gemini AI and also receive a response.
-- `GET /response/v1/openAI/:id`: Retrieve OpenAI assistant response.
+#### 🚀 API Health Check
+- **GET** `/v2/deck/hi`  
+  - **Description:** Checks if the API is online.  
+  - **Response:**  
+    ```json
+    { "message": "Hi! the server is active" }
+    ```
+
+#### ⚡ Flashcard Generation
+- **POST** `/v2/deck/generate/flashcards/:id`  
+  - **Description:** Generates flashcards using Gemini AI based on provided input.  
+  - **Path Parameter:**
+    - `id` (string) – The user's unique ID.  
+  - **Request Body:**
+    ```json
+    {
+      "deckTitle": "WEBDEV - Frameworks",
+      "subject": "Web development",
+      "topic": "frameworks",
+      "addDescription": "The various frameworks used for web development and their design patterns", // Optional
+      "numberOfFlashcards": 10
+    }
+    ```
+  - **Response:**
+    ```json
+    {
+      "flashcards": [
+        { "question": "What is wave-particle duality?", "answer": "It refers to the property of quantum entities to exhibit both wave and particle characteristics." }
+      ]
+    }
+    ```
+
+#### 🛡️ Content Moderation
+- **POST** `/v2/deck/moderate/:id`  
+  - **Description:** Uses Gemini AI to analyze user-generated content and determine its appropriateness.  
+  - **Path Parameter:**
+    - `id` (string) – The user's session or request identifier.  
+  - **Request Body:**
+    ```json
+    {
+      "content": "Input text to be moderated"
+    }
+    ```
+  - **Response:**
+    ```json
+    {
+      "moderation_result": "Safe",
+      "flags": []
+    }
+    ```
+
+#### 📝 Quiz Generation
+- **POST** `/v2/deck/generate/quiz/:id`  
+  - **Description:** Generates quiz questions based on provided text or study materials using OpenAI.  
+  - **Path Parameter:**
+    - `id` (string) – The user's session or request identifier.  
+  - **Request Body:**
+    ```json
+    {
+      "topic": "Biology",
+      "subject": "Cell Structure",
+      "description": "Test questions about cell organelles.",
+      "material": "Base64_encoded_PDF_or_text"
+    }
+    ```
+  - **Response:**
+    ```json
+    {
+      "quiz": [
+        {
+          "question": "Which organelle is responsible for energy production in cells?",
+          "options": ["Nucleus", "Mitochondria", "Ribosome", "Golgi Apparatus"],
+          "answer": "Mitochondria"
+        }
+      ]
+    }
+    ```
+
 
 ---
 
