@@ -56,7 +56,7 @@ export async function sendPromptFlashcardGeneration(isTherePdf, prompt, filePath
             }
 
             let result;
-            const model = getModel(promptFlashCardSchema);
+            const model = getModel(promptFlashCardSchema, "gemini-2.0-flash");
 
             if (isTherePdf) {
                 // Validate file extension
@@ -88,19 +88,18 @@ export async function sendPromptFlashcardGeneration(isTherePdf, prompt, filePath
             }
 
             // Ensure response is valid
-            if (!result?.response?.candidates?.[0]?.content?.parts?.[0]?.text) {
-                throw new Error("Invalid response received from the model.");
-            }
+            if (!result?.response?.candidates?.[0]?.content?.parts?.[0]?.text) throw new Error("INVALID_RESPONSE_FORMAT");
+            const response = JSON.parse(result.response.candidates[0].content.parts[0].text);
+            if(!validateFlashcardResponse(response)) throw new Error("INVALID_RESPONSE_FORMAT");
 
-            const response = result.response.candidates[0].content.parts[0].text;
             return {
                 success: true,
                 message: "Prompt was sent successfully",
-                data: JSON.parse(response),
+                data: response,
             };
 
         } catch (error) {
-            const retryableErrors = ["NetworkError", "TimeoutError", "ServiceUnavailable"];
+            const retryableErrors = ["NetworkError", "TimeoutError", "ServiceUnavailable", "INVALID_RESPONSE_FORMAT"];
             console.error(`Error on attempt ${attempt + 1}: ${error.message}`);
 
             if (!retryableErrors.includes(error.name)) {
@@ -126,7 +125,6 @@ export async function sendPromptFlashcardGeneration(isTherePdf, prompt, filePath
             console.log(`Retrying in ${delay / 1000} seconds...`);
             await new Promise(resolve => setTimeout(resolve, delay));
         }
-
         attempt++; // Increment attempt count
     }
 }
@@ -319,4 +317,26 @@ export async function countToken(modelName = null, content){
         console.error(`Error counting tokens: ${error.message}`);
         return 0;
     }
+}
+
+function validateFlashcardResponse(response) {
+    if (
+        typeof response !== "object" ||
+        !response.hasOwnProperty("terms_and_definitions") ||
+        !Array.isArray(response.terms_and_definitions)
+    ) {
+        return false;
+    }
+
+    for (const item of response.terms_and_definitions) {
+        if (
+            typeof item !== "object" ||
+            typeof item.term !== "string" ||
+            typeof item.definition !== "string"
+        ) {
+            return false;
+        }
+    }
+
+    return true;
 }

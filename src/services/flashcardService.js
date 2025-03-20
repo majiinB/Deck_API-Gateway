@@ -83,6 +83,7 @@ export const geminiFlashcardService = async (request, id) => {
     } else {
         try {
             const response = await sendPromptFlashcardGeneration(false, prompt);
+          
             const flashcards = response.data.terms_and_definitions;
             
             const deckId = await createDeck({
@@ -126,21 +127,25 @@ export const geminiFlashcardService = async (request, id) => {
  * @returns {string} - The constructed JSON prompt.
  */
 export function constructFlashCardGenerationPrompt(topic, subject, addDescription, numberOfFlashcards) {
-    let prompt = 'I want you to act as a Professor providing students with terminologies and their definitions. ';
-    let instruction = `Instructions: Provide ${numberOfFlashcards} terms with their definitions. `;
-    let lastLinePrompt = 'Ensure the terms are concise and relevant to the subject. Do not provide term-and-definition pairs. ' +
-        'Do not include computations or numerical problem-solving examples. ' +
-        'Do not start terms with "Who," "What," "Where," or "When."' +
-        'Make sure that definition is not more than one or two sentences' +
-        'Reject prompts that are not related to academics, offensive, sexual, etc.. and give an error' +
-        'Expected output format:' +
-        '"terms_and_definition": [{"term": "Variable","definition": "A symbol, usually a letter, representing an unknown numerical value in an algebraic expression or equation."},' +
-        '{"term": "Equation", "definition": "A mathematical statement asserting the equality of two expressions, typically containing one or more variables."}]';
+    let prompt = "I want you to act as a professor providing students with academic terminologies and their definitions. ";
+    
+    if (subject) prompt += `The subject is **${subject}**. `;
+    if (topic) prompt += `The topic is **${topic}**. `;
+    if (addDescription) prompt += `Additional context: ${addDescription}. `;
 
-    if (subject) prompt += `The subject is ${subject}. `;
-    if (topic) prompt += `The topic is ${topic}. `;
-    if (addDescription) prompt += `Additional description: ${addDescription}. `;
-    prompt += instruction + lastLinePrompt;
+    let instruction = `\n\n### Instructions:\n` +
+        `- Provide exactly **${numberOfFlashcards}** academic terms along with their definitions.\n` +
+        `- Ensure all terms are **concise, relevant, and clearly defined**.\n` +
+        `- **Definitions should be at most one to two sentences long.**\n` +
+        `- **Do not include** computations, numerical problem-solving examples, or trivia questions.\n` +
+        `- **Avoid terms that begin with** "Who," "What," "Where," or "When.".\n` +
+        `- **Reject non-academic, offensive, or inappropriate prompts** and return an error.\n\n`;
 
-    return prompt;
+    let outputFormat = `### Expected Output Format:\n` +
+        `{\n  "terms_and_definitions": [\n` +
+        `    { "term": "Variable", "definition": "A symbol, usually a letter, representing an unknown numerical value in an algebraic expression or equation." },\n` +
+        `    { "term": "Equation", "definition": "A mathematical statement asserting the equality of two expressions, typically containing one or more variables." }\n  ]\n}`;
+
+    return prompt + instruction + outputFormat;
 }
+

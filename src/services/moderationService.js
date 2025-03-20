@@ -39,8 +39,12 @@ export const geminiModerationService = async (deckId, id) => {
     try {
         const deck = await getDeckById(deckId);
         const deckTermsAndDef = deck.flashcards;
+        console.log("deck terms and def ", JSON.stringify(deckTermsAndDef, null, 2));
+        
         
         const deckData = formatPrompt(deckTermsAndDef);
+        console.log("deckdata: "+deckData);
+        
         const prompt = moderationPrompt();
         const result = await sendPromptInline(moderatedFlashcardsSchema, prompt,deckData);
         
@@ -99,11 +103,11 @@ const chunkArray = (array, chunkSize) => {
  * Formats a chunk of questions into a prompt-friendly format.
  *
  * @function formatPrompt
- * @param {Array} questionsChunk - The chunk of questions to format.
+ * @param {Array} flashcardChunk - The chunk of questions to format.
  * @returns {string} A formatted string for AI moderation.
  */
-const formatPrompt = (questionsChunk) => {
-    return questionsChunk.map(q => `Description: ${q.definition}\nTerm: ${q.term}`).join("\n\n");
+const formatPrompt = (flashcardChunk) => {
+    return flashcardChunk.map(f => `Definition: ${f.definition}\nTerm: ${f.term}`).join("\n\n");
 };
 
 
@@ -150,7 +154,7 @@ const aggregateModerationResults = (aiResponses) => {
 const moderationPrompt = (questionsChunk = null) => {
     let prompt = "";
     if (!questionsChunk) {
-        prompt = `You are an AI content moderator. Your task is to review the following description and terms to 
+        prompt = `You are an AI content moderator. Your task is to review the following definition and terms to 
                     determine if any content is inappropriate.
 
                     ### Inappropriate content includes:
@@ -160,7 +164,7 @@ const moderationPrompt = (questionsChunk = null) => {
                     - Any content that is harmful, unethical, or violates academic integrity.
 
                     ### Instructions:
-                    1. Review each description-term pair.
+                    1. Review each definition-term pair.
                     2. Identify any inappropriate content based on the given criteria.
                     3. Return your moderation decision accordingly and STRICTLY FOLLOW THE FORMAT.
 
@@ -178,7 +182,7 @@ const moderationPrompt = (questionsChunk = null) => {
                         moderation_decision: "content is inappropriate",
                         flagged_cards: [
                             {
-                                description: "Inappropriate description from flashcard",
+                                definition: "Inappropriate definition from flashcard",
                                 term: "Inappropriate term of flashcard,
                                 reason: "Reason for why is it inappropriate and became flagged"
                             }
@@ -186,7 +190,7 @@ const moderationPrompt = (questionsChunk = null) => {
                     }
         `;
     }else{
-        prompt = `You are an AI content moderator. Your task is to review the following description and terms to 
+        prompt = `You are an AI content moderator. Your task is to review the following definition and terms to 
                     determine if any content is inappropriate.
 
                     ### Inappropriate content includes:
@@ -196,7 +200,7 @@ const moderationPrompt = (questionsChunk = null) => {
                     - Any content that is harmful, unethical, or violates academic integrity.
 
                     ### Instructions:
-                    1. Review each description-term pair.
+                    1. Review each definition-term pair.
                     2. Identify any inappropriate content based on the given criteria.
                     3. Return your moderation decision accordingly and STRICTLY FOLLOW THE FORMAT.
 
@@ -214,7 +218,7 @@ const moderationPrompt = (questionsChunk = null) => {
                         moderation_decision: "content is inappropriate",
                         flagged_cards: [
                             {
-                                description: "Inappropriate description from flashcard",
+                                definition: "Inappropriate definition from flashcard",
                                 term: "Inappropriate term of flashcard,
                                 reason: "Reason for why is it inappropriate and became flagged"
                             }

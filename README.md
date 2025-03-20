@@ -6,27 +6,30 @@
 
 # 🚪 Deck AI API Service
 
-**Deck AI API Service** is a microservice within the *Deck* ecosystem that handles all AI-related functionalities. It integrates Gemini AI to process user input, generate flashcards, generate quizzes, help moderate deck of flashcards and enhance productivity. This service provides dedicated endpoints for AI-driven content generation, ensuring seamless interaction between the *Deck* application and AI models.
+**Deck AI API Service** is a microservice within the _Deck_ ecosystem that handles all AI-related functionalities. It integrates Gemini AI to process user input, generate flashcards, generate quizzes, help moderate deck of flashcards and enhance productivity. This service provides dedicated endpoints for AI-driven content generation, ensuring seamless interaction between the _Deck_ application and AI models.
 
 ---
 
 ## 🌟 Features
 
 ### Gemini Integration
+
 - **⚡ Flashcard Generation**: Utilize Gemini to automatically generate flashcards from study materials (pdf files) and text inputs.
-- **📝 Quiz Generation: Generate interactive multiple-choice quizzes using AI, based on your deck of flashcards.
-- **🛡️ Content Moderation: Ensure appropriate and high-quality content by using AI to filter and analyze user-generated inputs, preventing harmful or irrelevant material.
+- \*\*📝 Quiz Generation: Generate interactive multiple-choice quizzes using AI, based on your deck of flashcards.
+- \*\*🛡️ Content Moderation: Ensure appropriate and high-quality content by using AI to filter and analyze user-generated inputs, preventing harmful or irrelevant material.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js installed
 - OpenAI API key
 - Firebase admin SDK
 
 ### Installation
+
 1. 🛠️ Clone this repository to your local machine.
 2. 📦 Install dependencies using `npm install`.
 3. ⚙️ Set up environment variables:
@@ -47,18 +50,20 @@
 ### 📡 API Endpoints
 
 #### 🚀 API Health Check
-- **GET** `/v2/deck/hi`  
-  - **Description:** Checks if the API is online.  
-  - **Response:**  
+
+- **GET** `/v2/deck/hi`
+  - **Description:** Checks if the API is online.
+  - **Response:**
     ```json
     { "message": "Hi! the server is active" }
     ```
 
 #### ⚡ Flashcard Generation
-- **POST** `/v2/deck/generate/flashcards/:id`  
-  - **Description:** Generates flashcards using Gemini AI based on provided input.  
+
+- **POST** `/v2/deck/generate/flashcards/:id`
+  - **Description:** Generates flashcards using Gemini AI based on provided input.
   - **Path Parameter:**
-    - `id` (string) – The user's unique ID.  
+    - `id` (string) – The user's unique ID.
   - **Request Body:**
     ```json
     {
@@ -72,64 +77,111 @@
   - **Response:**
     ```json
     {
-      "flashcards": [
-        { "question": "What is wave-particle duality?", "answer": "It refers to the property of quantum entities to exhibit both wave and particle characteristics." }
-      ]
+      "status": 200,
+      "request_owner_id": "<id>",
+      "message": "Prompt was sent successfully",
+      "data": {
+        "deckId": "<deck unique id in database>"
+      }
     }
     ```
 
 #### 🛡️ Content Moderation
-- **POST** `/v2/deck/moderate/:id`  
-  - **Description:** Uses Gemini AI to analyze user-generated content and determine its appropriateness.  
+
+- **POST** `/v2/deck/moderate/:id`
+
+  - **Description:** Uses Gemini AI to analyze user-generated content and determine its appropriateness.
   - **Path Parameter:**
-    - `id` (string) – The user's session or request identifier.  
+    - `id` (string) – The user's unique ID.
   - **Request Body:**
     ```json
     {
-      "content": "Input text to be moderated"
+      "deckId": "<unique_deck_id>"
     }
     ```
   - **Response:**
+
     ```json
     {
-      "moderation_result": "Safe",
-      "flags": []
+      "status": 200,
+      "request_owner_id": "<id>",
+      "message": "Moderation review successful",
+      "data": {
+        "quiz_data": {
+          "overall_verdict": {
+            "is_appropriate": false,
+            "moderation_decision": "content is inappropriate",
+            "flagged_cards": [
+              {
+                "description": "Activates a configured interface.",
+                "term": "Tangina mo",
+                "reason": "Profanity and offensive language"
+              }
+            ]
+          }
+        }
+      }
+    }
+    ```
+
+    or
+
+    ```json
+    {
+      "status": 200,
+      "request_owner_id": "<id>",
+      "message": "Moderation review successful",
+      "data": {
+        "quiz_data": {
+          "overall_verdict": {
+            "is_appropriate": true,
+            "moderation_decision": "content is appropriate",
+            "flagged_cards": []
+          }
+        }
+      }
     }
     ```
 
 #### 📝 Quiz Generation
-- **POST** `/v2/deck/generate/quiz/:id`  
-  - **Description:** Generates quiz questions based on provided text or study materials using OpenAI.  
+
+- **POST** `/v2/deck/generate/quiz/:id`
+  - **Description:** Generates quiz questions based on provided deck id using Gemini AI.
   - **Path Parameter:**
-    - `id` (string) – The user's session or request identifier.  
+    - `id` (string) – The user's unique ID.
   - **Request Body:**
     ```json
     {
-      "topic": "Biology",
-      "subject": "Cell Structure",
-      "description": "Test questions about cell organelles.",
-      "material": "Base64_encoded_PDF_or_text"
+      "deckId": "<unique_deck_id>"
     }
     ```
   - **Response:**
     ```json
     {
-      "quiz": [
-        {
-          "question": "Which organelle is responsible for energy production in cells?",
-          "options": ["Nucleus", "Mitochondria", "Ribosome", "Golgi Apparatus"],
-          "answer": "Mitochondria"
-        }
-      ]
+      "status": 200,
+      "request_owner_id": "<id>",
+      "message": "Quiz creation for deck with id:<id> is successful",
+      "data": null
     }
     ```
-
+    or
+    ```json
+    {
+      "status": 200,
+      "request_owner_id": "<id>",
+      "message": "There is already a quiz made for this deck in the 'quiz' collection",
+      "data": {
+        "quiz_id": "<quiz_id>"
+      }
+    }
+    ```
 
 ---
 
 ## 🤝 Contributing
 
 We welcome contributions from the community! To contribute:
+
 1. 🍴 Fork the repository.
 2. 🌿 Create a new branch (`git checkout -b feature/YourFeature`).
 3. 💻 Commit your changes (`git commit -m 'Add some feature'`).
